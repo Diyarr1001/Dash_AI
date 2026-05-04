@@ -1,0 +1,42 @@
+============================================================
+          DASH AI - USER INSTRUCTIONS
+============================================================
+
+1. HOW TO RUN THE PROJECT
+------------------------------------------------------------
+The easiest way to start Dash AI is to use the automated
+script I created for you:
+
+Step 1: Locate the file named "run.bat" in this folder.
+Step 2: Double-click it.
+Step 3: Wait for the two windows to open and finish loading.
+Step 4: Open your web browser and go to:
+        http://localhost:5173
+
+2. WHAT IS DASH AI?
+------------------------------------------------------------
+Dash AI is your personal AI data analyst. You can upload 
+data and ask questions in plain English. The AI will:
+- Write the database code for you.
+- Create beautiful charts automatically.
+- Predict future trends.
+
+3. KEY FEATURES TO TRY
+------------------------------------------------------------
+- DASHBOARD: Upload a CSV or Excel file here.
+- AI CHAT: Type "Build a performance report" to see the magic.
+- PORTFOLIO: Save your work here to show others later.
+- ANALYTICS: Use the "What-If" sliders to simulate business
+  scenarios (e.g., "What if sales increase by 20%?").
+
+4. TROUBLESHOOTING
+------------------------------------------------------------
+If things don't work:
+- Make sure you have Python and Node.js installed.
+- Ensure your .env file has the correct API keys.
+- If the database fails, check your internet connection for 
+  the Supabase link.
+
+============================================================
+Enjoy using Dash AI!
+============================================================
