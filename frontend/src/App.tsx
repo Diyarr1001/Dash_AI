@@ -135,7 +135,6 @@ const App = () => {
   }
 
   return (
-  return (
     <div className="flex flex-col h-screen bg-background text-foreground transition-colors duration-300 overflow-hidden">
       <GetDataModal 
         isOpen={showGetData}
@@ -604,6 +603,7 @@ const App = () => {
               </div>
             </div>
           )}
+            </div>
           </div>
         </main>
 
