@@ -121,9 +121,11 @@ export const DashboardView = ({ project: initialProject, projectId, onClose, isR
       {/* Header */}
       <div className="flex items-center justify-between border-b border-border pb-6 transition-colors duration-300">
         <div className="space-y-1">
-          <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-widest cursor-pointer hover:opacity-70 transition-opacity" onClick={onClose}>
-            Dashboards <ChevronRight size={14} />
-          </div>
+          {!isReadOnly && (
+            <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-widest cursor-pointer hover:opacity-70 transition-opacity" onClick={onClose}>
+              Dashboards <ChevronRight size={14} />
+            </div>
+          )}
           <h3 className="text-3xl font-display font-bold text-foreground">{project.title}</h3>
           <p className="text-text-muted">{project.description || 'AI-Powered Analytics Dashboard'}</p>
         </div>
