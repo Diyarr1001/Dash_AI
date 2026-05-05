@@ -5,16 +5,34 @@ import { api } from '../lib/api';
 import { Reorder } from 'framer-motion';
 
 interface DashboardViewProps {
-  project: any;
+  project?: any;
+  projectId?: string;
   onClose: () => void;
+  isReadOnly?: boolean;
 }
 
-export const DashboardView = ({ project, onClose }: DashboardViewProps) => {
+export const DashboardView = ({ project: initialProject, projectId, onClose, isReadOnly = false }: DashboardViewProps) => {
+  const [project, setProject] = useState(initialProject);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
   const [updatePrompt, setUpdatePrompt] = useState('');
   const [kpis, setKpis] = useState<any[]>([]);
   const [charts, setCharts] = useState<any[]>([]);
+
+  useEffect(() => {
+    const loadProject = async () => {
+      if (!project && projectId) {
+        setIsLoading(true);
+        try {
+          const response = await api.get(`/dashboards/${projectId}`);
+          setProject(response.data);
+        } catch (err) {
+          console.error('Failed to fetch project', err);
+        }
+      }
+    };
+    loadProject();
+  }, [projectId]);
 
   useEffect(() => {
     const refreshData = async () => {
@@ -110,24 +128,26 @@ export const DashboardView = ({ project, onClose }: DashboardViewProps) => {
           <p className="text-text-muted">{project.description || 'AI-Powered Analytics Dashboard'}</p>
         </div>
         
-        <div className="flex gap-3">
-          {(isLoading || isUpdating) && (
-            <div className="flex items-center gap-2 px-4 py-2 bg-background/50 text-text-muted rounded-xl text-xs font-bold border border-border">
-              <Loader2 className="animate-spin" size={14} />
-              {isUpdating ? 'AI IS UPDATING...' : 'REFRESHING DATA...'}
-            </div>
-          )}
-          <button 
-            onClick={() => {
-              if (confirm('Are you sure you want to delete this dashboard?')) {
-                api.delete(`/dashboards/${project.id}`).then(() => onClose());
-              }
-            }}
-            className="p-2.5 text-red-500 hover:bg-red-500/10 rounded-xl transition-colors border border-red-500/20"
-          >
-            <Trash2 size={20} />
-          </button>
-        </div>
+        {!isReadOnly && (
+          <div className="flex gap-3">
+            {(isLoading || isUpdating) && (
+              <div className="flex items-center gap-2 px-4 py-2 bg-background/50 text-text-muted rounded-xl text-xs font-bold border border-border">
+                <Loader2 className="animate-spin" size={14} />
+                {isUpdating ? 'AI IS UPDATING...' : 'REFRESHING DATA...'}
+              </div>
+            )}
+            <button 
+              onClick={() => {
+                if (confirm('Are you sure you want to delete this dashboard?')) {
+                  api.delete(`/dashboards/${project.id}`).then(() => onClose());
+                }
+              }}
+              className="p-2.5 text-red-500 hover:bg-red-500/10 rounded-xl transition-colors border border-red-500/20"
+            >
+              <Trash2 size={20} />
+            </button>
+          </div>
+        )}
       </div>
 
       {isLoading && kpis.length === 0 && charts.length === 0 ? (
@@ -220,31 +240,33 @@ export const DashboardView = ({ project, onClose }: DashboardViewProps) => {
       )}
 
       {/* Floating AI Command Bar */}
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 w-full max-w-2xl px-4 z-50">
-        <div className="glass bg-card/90 border border-primary/20 p-2 rounded-2xl shadow-2xl shadow-primary/20 backdrop-blur-xl">
-          <div className="flex items-center gap-2">
-            <div className="pl-3 text-primary">
-              {isUpdating ? <Loader2 className="animate-spin" size={20} /> : <Sparkles size={20} />}
+      {!isReadOnly && (
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 w-full max-w-2xl px-4 z-50">
+          <div className="glass bg-card/90 border border-primary/20 p-2 rounded-2xl shadow-2xl shadow-primary/20 backdrop-blur-xl">
+            <div className="flex items-center gap-2">
+              <div className="pl-3 text-primary">
+                {isUpdating ? <Loader2 className="animate-spin" size={20} /> : <Sparkles size={20} />}
+              </div>
+              <input 
+                type="text" 
+                value={updatePrompt}
+                onChange={(e) => setUpdatePrompt(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleAIUpdate()}
+                placeholder="Tell AI to modify this dashboard (e.g., 'Add average salary chart')..."
+                className="flex-1 bg-transparent border-none outline-none py-3 text-sm text-foreground placeholder:text-text-muted/50"
+                disabled={isUpdating}
+              />
+              <button 
+                onClick={handleAIUpdate}
+                disabled={!updatePrompt.trim() || isUpdating}
+                className="p-2.5 bg-primary text-white rounded-xl hover:opacity-90 disabled:opacity-50 transition-all"
+              >
+                <Send size={18} />
+              </button>
             </div>
-            <input 
-              type="text" 
-              value={updatePrompt}
-              onChange={(e) => setUpdatePrompt(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleAIUpdate()}
-              placeholder="Tell AI to modify this dashboard (e.g., 'Add average salary chart')..."
-              className="flex-1 bg-transparent border-none outline-none py-3 text-sm text-foreground placeholder:text-text-muted/50"
-              disabled={isUpdating}
-            />
-            <button 
-              onClick={handleAIUpdate}
-              disabled={!updatePrompt.trim() || isUpdating}
-              className="p-2.5 bg-primary text-white rounded-xl hover:opacity-90 disabled:opacity-50 transition-all"
-            >
-              <Send size={18} />
-            </button>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

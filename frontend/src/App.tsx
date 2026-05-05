@@ -72,6 +72,8 @@ const App = () => {
   const [showUploader, setShowUploader] = useState(false);
   const [showGetData, setShowGetData] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [isPublicView, setIsPublicView] = useState(false);
+  const [publicProjectId, setPublicProjectId] = useState<string | null>(null);
 
   const showToast = (message: string) => {
     setToastMessage(message);
@@ -82,6 +84,17 @@ const App = () => {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('theme', theme);
   }, [theme]);
+
+  useEffect(() => {
+    // Check for shared project ID in URL
+    const params = new URLSearchParams(window.location.search);
+    const sharedId = params.get('project_id');
+    if (sharedId) {
+      setIsPublicView(true);
+      setPublicProjectId(sharedId);
+      setActiveTab('view_dashboard');
+    }
+  }, []);
 
   const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
 
@@ -130,20 +143,34 @@ const App = () => {
     setActiveTab('view_dashboard');
   };
 
-  if (!user) {
+  if (!user && !isPublicView) {
     return <LoginPage onLoginSuccess={(u) => setUser(u)} />;
   }
-
   return (
     <div className="flex h-screen bg-background text-foreground transition-colors duration-300">
-      <GetDataModal 
-        isOpen={showGetData}
-        onClose={() => setShowGetData(false)}
-        onFileClick={() => setShowUploader(true)}
-        onSourceConnected={handleDatabaseConnected}
-      />
-      {/* Sidebar */}
-      <aside className="w-72 border-r border-border bg-card flex flex-col p-6 transition-colors duration-300">
+      {/* Shared Dashboard View (Bypass Sidebar) */}
+      {isPublicView ? (
+        <main className="flex-1 overflow-hidden">
+          <div className="h-full overflow-y-auto bg-background p-4 md:p-12">
+            <DashboardView 
+              projectId={publicProjectId || ''} 
+              onClose={() => {
+                window.location.href = window.location.origin;
+              }}
+              isReadOnly={true}
+            />
+          </div>
+        </main>
+      ) : (
+        <>
+          <GetDataModal 
+            isOpen={showGetData}
+            onClose={() => setShowGetData(false)}
+            onFileClick={() => setShowUploader(true)}
+            onSourceConnected={handleDatabaseConnected}
+          />
+          {/* Sidebar */}
+          <aside className="w-72 border-r border-border bg-card flex flex-col p-6 transition-colors duration-300">
         <div className="flex items-center justify-between px-2 mb-10">
           <div 
             className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
