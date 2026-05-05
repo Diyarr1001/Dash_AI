@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { BarChart2, Trash2, ChevronRight, Loader2, Sparkles, Send } from 'lucide-react';
 import { ChartContainer } from './ChartContainer';
 import { api } from '../lib/api';

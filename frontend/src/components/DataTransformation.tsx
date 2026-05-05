@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Sparkles, Play, Trash2 } from 'lucide-react';
 import { api } from '../lib/api';
 

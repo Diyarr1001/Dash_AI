@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { 
-  FileSpreadsheet, Database, Server, Lock, Globe, 
+  FileSpreadsheet, Database, Server, User, Lock, Globe, 
   ArrowLeft, CheckCircle2, Loader2, X, AlertCircle, 
   Search, ChevronRight, Layers
 } from 'lucide-react';
@@ -144,10 +144,6 @@ export const GetDataModal = ({ isOpen, onClose, onFileClick, onSourceConnected }
     }
   };
 
-  const handleConnectMysql = async (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("MySQL connection not implemented in this view version");
-  };
 
   const handleMysqlFinalConnect = async () => {
     if (selectedTables.length === 0) {
