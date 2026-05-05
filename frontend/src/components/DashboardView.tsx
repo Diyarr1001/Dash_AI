@@ -160,84 +160,152 @@ export const DashboardView = ({ project: initialProject, projectId, onClose, isR
       ) : (
         <>
           {/* Stats/KPI Row */}
-          <Reorder.Group 
-            axis="x" 
-            values={kpis} 
-            onReorder={setKpis}
-            className="grid grid-cols-1 md:grid-cols-3 gap-6"
-          >
-            {kpis.map((kpi: any, index: number) => (
-              <Reorder.Item 
-                key={`${kpi.title}-${index}`} 
-                value={kpi}
-                whileDrag={{ scale: 1.05, boxShadow: "0 20px 25px -5px rgba(99, 102, 241, 0.2)" }}
-                className="glass p-6 rounded-3xl space-y-2 border border-border shadow-sm transition-all duration-300 cursor-grab active:cursor-grabbing hover:border-primary/30"
-              >
-                <p className="text-xs font-bold text-text-muted uppercase tracking-widest">
-                  {typeof kpi.title === 'object' ? JSON.stringify(kpi.title) : String(kpi.title)}
-                </p>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-display font-bold text-foreground">
-                    {kpi.data && kpi.data.length > 0 ? JSON.stringify(kpi.data[0]?.[Object.keys(kpi.data[0])[0]]) : '0'}
-                  </span>
+          {isReadOnly ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {kpis.map((kpi: any, index: number) => (
+                <div 
+                  key={`${kpi.title}-${index}`} 
+                  className="glass p-6 rounded-3xl space-y-2 border border-border shadow-sm transition-all duration-300 hover:border-primary/30"
+                >
+                  <p className="text-xs font-bold text-text-muted uppercase tracking-widest">
+                    {typeof kpi.title === 'object' ? JSON.stringify(kpi.title) : String(kpi.title)}
+                  </p>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-3xl font-display font-bold text-foreground">
+                      {kpi.data && kpi.data.length > 0 ? JSON.stringify(kpi.data[0]?.[Object.keys(kpi.data[0])[0]]) : '0'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-text-muted/80">
+                    {typeof kpi.description === 'object' ? JSON.stringify(kpi.description) : String(kpi.description)}
+                  </p>
                 </div>
-                <p className="text-xs text-text-muted/80">
-                  {typeof kpi.description === 'object' ? JSON.stringify(kpi.description) : String(kpi.description)}
-                </p>
-              </Reorder.Item>
-            ))}
-          </Reorder.Group>
+              ))}
+            </div>
+          ) : (
+            <Reorder.Group 
+              axis="x" 
+              values={kpis} 
+              onReorder={setKpis}
+              className="grid grid-cols-1 md:grid-cols-3 gap-6"
+            >
+              {kpis.map((kpi: any, index: number) => (
+                <Reorder.Item 
+                  key={`${kpi.title}-${index}`} 
+                  value={kpi}
+                  whileDrag={{ scale: 1.05, boxShadow: "0 20px 25px -5px rgba(99, 102, 241, 0.2)" }}
+                  className="glass p-6 rounded-3xl space-y-2 border border-border shadow-sm transition-all duration-300 cursor-grab active:cursor-grabbing hover:border-primary/30"
+                >
+                  <p className="text-xs font-bold text-text-muted uppercase tracking-widest">
+                    {typeof kpi.title === 'object' ? JSON.stringify(kpi.title) : String(kpi.title)}
+                  </p>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-3xl font-display font-bold text-foreground">
+                      {kpi.data && kpi.data.length > 0 ? JSON.stringify(kpi.data[0]?.[Object.keys(kpi.data[0])[0]]) : '0'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-text-muted/80">
+                    {typeof kpi.description === 'object' ? JSON.stringify(kpi.description) : String(kpi.description)}
+                  </p>
+                </Reorder.Item>
+              ))}
+            </Reorder.Group>
+          )}
 
           {/* Charts Grid */}
-          <Reorder.Group 
-            axis="y" 
-            values={charts} 
-            onReorder={setCharts}
-            className="grid grid-cols-1 lg:grid-cols-2 gap-8"
-          >
-            {charts.map((comp: any, index: number) => (
-              <Reorder.Item 
-                key={`${comp.title}-${index}`} 
-                value={comp}
-                whileDrag={{ scale: 1.02, boxShadow: "0 20px 25px -5px rgba(99, 102, 241, 0.1)" }}
-                className="glass rounded-[2.5rem] p-8 space-y-6 hover:shadow-2xl hover:border-primary/20 transition-all duration-500 group relative overflow-hidden cursor-grab active:cursor-grabbing"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <h4 className="text-xl font-bold text-foreground tracking-tight">
-                      {typeof comp.title === 'object' ? JSON.stringify(comp.title) : String(comp.title)}
-                    </h4>
-                    <p className="text-sm text-text-muted leading-relaxed">
-                      {typeof comp.description === 'object' ? JSON.stringify(comp.description) : String(comp.description)}
-                    </p>
-                  </div>
-                  <div className="p-2.5 bg-background rounded-xl text-text-muted group-hover:text-primary transition-colors border border-border">
-                    <BarChart2 size={20} />
-                  </div>
-                </div>
-
-                <ChartContainer 
-                  type={comp.chart_config?.type || 'bar'}
-                  data={comp.data || []}
-                  mappings={comp.chart_config?.mappings || {}}
-                  title={String(comp.title)}
-                  error={comp.error}
-                />
-
-                {comp.insights && (
-                  <div className="bg-primary/5 rounded-2xl p-6 border border-primary/10">
-                    <div className="flex items-center gap-2 text-primary mb-3">
-                      <Sparkles size={16} />
-                      <span className="text-xs font-bold uppercase tracking-widest">AI Insight</span>
+          {isReadOnly ? (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {charts.map((comp: any, index: number) => (
+                <div 
+                  key={`${comp.title}-${index}`} 
+                  className="glass rounded-[2.5rem] p-8 space-y-6 hover:shadow-2xl hover:border-primary/20 transition-all duration-500 group relative overflow-hidden"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-1">
+                      <h4 className="text-xl font-bold text-foreground tracking-tight">
+                        {typeof comp.title === 'object' ? JSON.stringify(comp.title) : String(comp.title)}
+                      </h4>
+                      <p className="text-sm text-text-muted leading-relaxed">
+                        {typeof comp.description === 'object' ? JSON.stringify(comp.description) : String(comp.description)}
+                      </p>
                     </div>
-                    <p className="text-sm text-foreground/90 leading-relaxed italic font-medium">
-                      "{typeof comp.insights === 'object' ? JSON.stringify(comp.insights) : String(comp.insights)}"
-                    </p>
+                    <div className="p-2.5 bg-background rounded-xl text-text-muted group-hover:text-primary transition-colors border border-border">
+                      <BarChart2 size={20} />
+                    </div>
                   </div>
-                )}
-              </Reorder.Item>
-            ))}
-          </Reorder.Group>
+
+                  <ChartContainer 
+                    type={comp.chart_config?.type || 'bar'}
+                    data={comp.data || []}
+                    mappings={comp.chart_config?.mappings || {}}
+                    title={String(comp.title)}
+                    error={comp.error}
+                  />
+
+                  {comp.insights && (
+                    <div className="bg-primary/5 rounded-2xl p-6 border border-primary/10">
+                      <div className="flex items-center gap-2 text-primary mb-3">
+                        <Sparkles size={16} />
+                        <span className="text-xs font-bold uppercase tracking-widest">AI Insight</span>
+                      </div>
+                      <p className="text-sm text-foreground/90 leading-relaxed italic font-medium">
+                        "{typeof comp.insights === 'object' ? JSON.stringify(comp.insights) : String(comp.insights)}"
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <Reorder.Group 
+              axis="y" 
+              values={charts} 
+              onReorder={setCharts}
+              className="grid grid-cols-1 lg:grid-cols-2 gap-8"
+            >
+              {charts.map((comp: any, index: number) => (
+                <Reorder.Item 
+                  key={`${comp.title}-${index}`} 
+                  value={comp}
+                  whileDrag={{ scale: 1.02, boxShadow: "0 20px 25px -5px rgba(99, 102, 241, 0.1)" }}
+                  className="glass rounded-[2.5rem] p-8 space-y-6 hover:shadow-2xl hover:border-primary/20 transition-all duration-500 group relative overflow-hidden cursor-grab active:cursor-grabbing"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-1">
+                      <h4 className="text-xl font-bold text-foreground tracking-tight">
+                        {typeof comp.title === 'object' ? JSON.stringify(comp.title) : String(comp.title)}
+                      </h4>
+                      <p className="text-sm text-text-muted leading-relaxed">
+                        {typeof comp.description === 'object' ? JSON.stringify(comp.description) : String(comp.description)}
+                      </p>
+                    </div>
+                    <div className="p-2.5 bg-background rounded-xl text-text-muted group-hover:text-primary transition-colors border border-border">
+                      <BarChart2 size={20} />
+                    </div>
+                  </div>
+
+                  <ChartContainer 
+                    type={comp.chart_config?.type || 'bar'}
+                    data={comp.data || []}
+                    mappings={comp.chart_config?.mappings || {}}
+                    title={String(comp.title)}
+                    error={comp.error}
+                  />
+
+                  {comp.insights && (
+                    <div className="bg-primary/5 rounded-2xl p-6 border border-primary/10">
+                      <div className="flex items-center gap-2 text-primary mb-3">
+                        <Sparkles size={16} />
+                        <span className="text-xs font-bold uppercase tracking-widest">AI Insight</span>
+                      </div>
+                      <p className="text-sm text-foreground/90 leading-relaxed italic font-medium">
+                        "{typeof comp.insights === 'object' ? JSON.stringify(comp.insights) : String(comp.insights)}"
+                      </p>
+                    </div>
+                  )}
+                </Reorder.Item>
+              ))}
+            </Reorder.Group>
+          )}
         </>
       )}
 
