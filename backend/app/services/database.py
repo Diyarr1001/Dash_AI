@@ -9,13 +9,19 @@ class DatabaseManager:
         self.duckdb_path = settings.DUCKDB_DATABASE_PATH
         self._duck_conn = None
         
-        # PostgreSQL setup
+        # PostgreSQL setup with SQLite fallback for production stability
         if settings.DATABASE_URL:
-            self.pg_engine = create_engine(settings.DATABASE_URL)
-            self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.pg_engine)
+            # Handle potential 'postgres://' vs 'postgresql://' issue
+            db_url = settings.DATABASE_URL
+            if db_url.startswith("postgres://"):
+                db_url = db_url.replace("postgres://", "postgresql://", 1)
+            self.pg_engine = create_engine(db_url)
         else:
-            self.pg_engine = None
-            self.SessionLocal = None
+            # Fallback to local SQLite for auth if no Postgres is provided
+            print("⚠️ No DATABASE_URL found. Using local SQLite for authentication.")
+            self.pg_engine = create_engine("sqlite:///./dashai_auth.db", connect_args={"check_same_thread": False})
+        
+        self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.pg_engine)
         
     def _get_mssql_conn_str(self, server, database, user=None, password=None, use_windows_auth=True):
         driver = "{ODBC Driver 17 for SQL Server}"
