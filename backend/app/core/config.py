@@ -6,7 +6,7 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
     
     # Database
-    DATABASE_URL: Optional[str] = None
+    DATABASE_URL: str = "sqlite:///./dashai.db"
     
     # AI Providers
     GROQ_API_KEY: Optional[str] = None

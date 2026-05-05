@@ -49,14 +49,15 @@ const SidebarItem = ({ icon: Icon, label, active, onClick }: SidebarItemProps) =
   <button
     onClick={onClick}
     className={cn(
-      "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group",
+      "w-full flex items-center rounded-xl transition-all duration-200 group",
+      label ? "gap-3 px-4 py-3" : "justify-center p-3",
       active 
         ? "bg-primary text-white shadow-lg shadow-primary/30" 
         : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
     )}
   >
     <Icon size={20} className={cn("transition-transform group-hover:scale-110", active ? "text-white" : "text-slate-400")} />
-    <span className="font-medium">{label}</span>
+    {label && <span className="font-medium animate-in fade-in slide-in-from-left-2 duration-300">{label}</span>}
   </button>
 );
 
@@ -72,6 +73,7 @@ const App = () => {
   const [showUploader, setShowUploader] = useState(false);
   const [showGetData, setShowGetData] = useState(false);
   const [showManualCreator, setShowManualCreator] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const showToast = (message: string) => {
@@ -133,96 +135,27 @@ const App = () => {
   }
 
   return (
-    <div className="flex h-screen bg-background text-foreground transition-colors duration-300">
+  return (
+    <div className="flex flex-col h-screen bg-background text-foreground transition-colors duration-300 overflow-hidden">
       <GetDataModal 
         isOpen={showGetData}
         onClose={() => setShowGetData(false)}
         onSourceConnected={handleDatabaseConnected}
       />
-      {/* Sidebar */}
-      <aside className="w-72 border-r border-border bg-card flex flex-col p-6 transition-colors duration-300">
-        <div className="flex items-center justify-between px-2 mb-10">
-          <div 
-            className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
-            onClick={() => {
-              setActiveTab('dashboard');
-              setSelectedProject(null);
-            }}
-          >
-            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
-              <Zap className="text-white" fill="white" size={24} />
-            </div>
-            <span className="text-2xl font-display font-bold tracking-tight">Dash AI</span>
-          </div>
-          
-          <button 
-            onClick={toggleTheme}
-            className="p-2.5 rounded-xl border border-border hover:bg-background/50 transition-all text-text-muted"
-          >
-            {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
-          </button>
-        </div>
 
-        <nav className="flex-1 space-y-2">
-          <SidebarItem 
-            icon={LayoutDashboard} 
-            label="Dashboards" 
-            active={activeTab === 'dashboard'} 
-            onClick={() => setActiveTab('dashboard')} 
-          />
-          <SidebarItem 
-            icon={BarChart3} 
-            label="Analytics" 
-            active={activeTab === 'analytics'} 
-            onClick={() => setActiveTab('analytics')} 
-          />
-          <SidebarItem 
-            icon={Database} 
-            label="Data Sources" 
-            active={activeTab === 'data'} 
-            onClick={() => setActiveTab('data')} 
-          />
-          <SidebarItem 
-            icon={Network} 
-            label="ER Diagram" 
-            active={activeTab === 'er'} 
-            onClick={() => setActiveTab('er')} 
-          />
-          <SidebarItem 
-            icon={MessageSquare} 
-            label="AI Chat" 
-            active={activeTab === 'chat'} 
-            onClick={() => setActiveTab('chat')} 
-          />
-        </nav>
-
-        <div className="mt-auto space-y-2">
-          <SidebarItem icon={SettingsIcon} label="Settings" onClick={() => {}} />
-          <SidebarItem icon={LogOut} label="Logout" onClick={handleLogout} />
-          <div className="p-4 rounded-2xl bg-background/50 border border-border mt-6">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xs">
-                {user?.full_name?.charAt(0).toUpperCase() || 'U'}
-              </div>
-              <div className="flex-1 overflow-hidden">
-                <p className="text-sm font-semibold truncate">{user?.full_name || 'User'}</p>
-                <p className="text-xs text-text-muted truncate">{user?.email || 'No email'}</p>
-              </div>
-            </div>
-            <button className="w-full py-2 bg-card border border-border rounded-lg text-xs font-semibold text-foreground hover:bg-background transition-colors">
-              Account
-            </button>
-          </div>
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col overflow-hidden">
-        {/* Professional Power BI Ribbon Header */}
-        <header className="border-b border-border bg-card/95 backdrop-blur-md sticky top-0 z-30 transition-colors duration-300 select-none">
-          {/* Tier 1: Project Bar */}
-          <div className="h-9 border-b border-border/40 flex items-center px-4 justify-between bg-muted/20">
-            <div className="flex items-center gap-6">
+      {/* Professional Power BI Ribbon Header - Full Width */}
+      <header className="border-b border-border bg-card/95 backdrop-blur-md z-30 transition-colors duration-300 select-none">
+        {/* Tier 1: Project Bar */}
+        <div className="h-9 border-b border-border/40 flex items-center px-4 justify-between bg-muted/20">
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+                className="p-1.5 hover:bg-background rounded text-text-muted hover:text-primary transition-colors"
+                title="Toggle Sidebar"
+              >
+                <LayoutDashboard size={14} />
+              </button>
               <div className="flex items-center gap-1">
                 <button className="px-3 py-1 text-[11px] font-bold hover:bg-background rounded transition-colors text-primary border border-transparent hover:border-primary/20">
                   File
@@ -231,136 +164,226 @@ const App = () => {
                   <Save size={14} />
                 </button>
               </div>
-              <div className="h-4 w-[1px] bg-border/60" />
-              <div className="flex items-center gap-2">
-                <span className="text-[11px] font-bold tracking-tight text-foreground/80">
-                  {currentDataset?.filename || 'Untitled Analysis'} - Dash AI
-                </span>
-                <div className="flex items-center gap-1 px-1.5 py-0.5 bg-green-500/10 rounded border border-green-500/20 shadow-sm scale-90">
-                  <span className="text-[9px] font-black text-green-600 uppercase">Saved</span>
-                  <CheckCircle2 size={8} className="text-green-600" />
-                </div>
+            </div>
+            <div className="h-4 w-[1px] bg-border/60" />
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-bold tracking-tight text-foreground/80">
+                {currentDataset?.filename || 'Untitled Analysis'} - Dash AI
+              </span>
+              <div className="flex items-center gap-1 px-1.5 py-0.5 bg-green-500/10 rounded border border-green-500/20 shadow-sm scale-90">
+                <span className="text-[9px] font-black text-green-600 uppercase">Saved</span>
+                <CheckCircle2 size={8} className="text-green-600" />
               </div>
             </div>
-            
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 bg-background/50 px-3 py-1 rounded-lg border border-border focus-within:ring-1 focus-within:ring-primary/30 transition-all">
-                <Search size={12} className="text-text-muted" />
-                <input 
-                  type="text" 
-                  placeholder="Tell AI what to do..." 
-                  className="bg-transparent border-none outline-none text-[10px] w-48 text-foreground placeholder:text-text-muted"
-                />
+          </div>
+          
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 bg-background/50 px-3 py-1 rounded-lg border border-border focus-within:ring-1 focus-within:ring-primary/30 transition-all">
+              <Search size={12} className="text-text-muted" />
+              <input 
+                type="text" 
+                placeholder="Tell AI what to do..." 
+                className="bg-transparent border-none outline-none text-[10px] w-48 text-foreground placeholder:text-text-muted"
+              />
+            </div>
+            <div className="h-4 w-[1px] bg-border/60" />
+            <button className="text-text-muted hover:text-foreground transition-colors">
+              <SettingsIcon size={14} />
+            </button>
+          </div>
+        </div>
+
+        {/* Tier 2: Ribbon Tabs & Content */}
+        <div className="flex flex-col">
+          {/* Tab Selectors */}
+          <div className="flex items-center px-6 gap-1 h-8 bg-muted/10 border-b border-border/20">
+            <button className="px-4 h-full text-[10px] font-bold border-b-2 border-primary text-primary transition-all">Home</button>
+            <button className="px-4 h-full text-[10px] font-bold text-text-muted hover:text-foreground transition-all">Insert</button>
+            <button className="px-4 h-full text-[10px] font-bold text-text-muted hover:text-foreground transition-all">Modeling</button>
+            <button className="px-4 h-full text-[10px] font-bold text-text-muted hover:text-foreground transition-all">View</button>
+            <button className="px-4 h-full text-[10px] font-bold text-text-muted hover:text-foreground transition-all">Help</button>
+          </div>
+
+          {/* Active Ribbon Content */}
+          <div className="h-20 flex items-center px-6 gap-6 overflow-x-auto no-scrollbar">
+            {/* Group: Clipboard/Basic (Empty for now) */}
+            <div className="flex flex-col gap-1 items-center px-2">
+              <div className="flex items-center gap-2 opacity-30 grayscale cursor-not-allowed">
+                <button className="p-2 rounded-lg"><Share2 size={20} /></button>
               </div>
-              <div className="h-4 w-[1px] bg-border/60" />
-              <button className="text-text-muted hover:text-foreground transition-colors">
-                <SettingsIcon size={14} />
+              <span className="text-[8px] font-black uppercase tracking-tighter text-text-muted">Clipboard</span>
+            </div>
+
+            <div className="h-10 w-[1px] bg-border/40" />
+
+            {/* Group: Data Selection */}
+            <div className="flex flex-col gap-1 items-center px-2 border-r border-border/40">
+              <div className="flex items-center gap-1">
+                <button 
+                  onClick={() => setShowGetData(true)}
+                  className="flex flex-col items-center gap-1 px-4 py-1 hover:bg-background rounded-xl transition-all group border border-transparent hover:border-border"
+                >
+                  <div className="p-2 bg-primary/10 rounded-lg text-primary group-hover:bg-primary group-hover:text-white transition-colors shadow-sm">
+                    <Database size={20} />
+                  </div>
+                  <span className="text-[9px] font-bold">Get Data</span>
+                </button>
+                <button 
+                  onClick={() => setActiveTab('analytics')}
+                  className="flex flex-col items-center gap-1 px-4 py-1 hover:bg-background rounded-xl transition-all group border border-transparent hover:border-border"
+                >
+                  <div className="p-2 bg-indigo-500/10 rounded-lg text-indigo-500 group-hover:bg-indigo-500 group-hover:text-white transition-colors shadow-sm">
+                    <TrendingUp size={20} />
+                  </div>
+                  <span className="text-[9px] font-bold">Transform</span>
+                </button>
+              </div>
+              <span className="text-[8px] font-black uppercase tracking-tighter text-text-muted">Data</span>
+            </div>
+
+            {/* Group: Visuals */}
+            <div className="flex flex-col gap-1 items-center px-2 border-r border-border/40">
+              <div className="flex items-center gap-1">
+                <button 
+                  onClick={() => setShowManualCreator(true)}
+                  className="flex flex-col items-center gap-1 px-4 py-1 hover:bg-background rounded-xl transition-all group border border-transparent hover:border-border"
+                >
+                  <div className="p-2 bg-orange-500/10 rounded-lg text-orange-500 group-hover:bg-orange-500 group-hover:text-white transition-colors shadow-sm">
+                    <BarChart3 size={20} />
+                  </div>
+                  <span className="text-[9px] font-bold">New Visual</span>
+                </button>
+                <button 
+                  onClick={() => setActiveTab('chat')}
+                  className="flex flex-col items-center gap-1 px-4 py-1 hover:bg-background rounded-xl transition-all group border border-transparent hover:border-border"
+                >
+                  <div className="p-2 bg-purple-500/10 rounded-lg text-purple-500 group-hover:bg-purple-500 group-hover:text-white transition-colors shadow-sm">
+                    <MessageSquare size={20} />
+                  </div>
+                  <span className="text-[9px] font-bold">AI Insight</span>
+                </button>
+              </div>
+              <span className="text-[8px] font-black uppercase tracking-tighter text-text-muted">Insert</span>
+            </div>
+
+            {/* Group: Modeling */}
+            <div className="flex flex-col gap-1 items-center px-2">
+              <div className="flex items-center gap-1">
+                <button 
+                  onClick={() => setActiveTab('er')}
+                  className="flex flex-col items-center gap-1 px-4 py-1 hover:bg-background rounded-xl transition-all group border border-transparent hover:border-border"
+                >
+                  <div className={cn(
+                    "p-2 rounded-lg transition-all group-hover:scale-105 shadow-sm",
+                    activeTab === 'er' ? "bg-red-500 text-white shadow-lg shadow-red-500/30" : "bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white"
+                  )}>
+                    <Network size={20} />
+                  </div>
+                  <span className="text-[9px] font-bold">Relationships</span>
+                </button>
+              </div>
+              <span className="text-[8px] font-black uppercase tracking-tighter text-text-muted">Modeling</span>
+            </div>
+
+            {/* Share & Collab */}
+            <div className="ml-auto flex items-center gap-3">
+              <button className="flex items-center gap-2 px-6 py-2 bg-primary text-white rounded-xl font-bold text-xs shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all hover:scale-[1.02] active:scale-[0.98]">
+                <Share2 size={14} />
+                Share Project
               </button>
             </div>
           </div>
+        </div>
+      </header>
 
-          {/* Tier 2: Ribbon Tabs & Content */}
-          <div className="flex flex-col">
-            {/* Tab Selectors */}
-            <div className="flex items-center px-6 gap-1 h-8 bg-muted/10 border-b border-border/20">
-              <button className="px-4 h-full text-[10px] font-bold border-b-2 border-primary text-primary transition-all">Home</button>
-              <button className="px-4 h-full text-[10px] font-bold text-text-muted hover:text-foreground transition-all">Insert</button>
-              <button className="px-4 h-full text-[10px] font-bold text-text-muted hover:text-foreground transition-all">Modeling</button>
-              <button className="px-4 h-full text-[10px] font-bold text-text-muted hover:text-foreground transition-all">View</button>
-              <button className="px-4 h-full text-[10px] font-bold text-text-muted hover:text-foreground transition-all">Help</button>
+      <div className="flex flex-1 overflow-hidden">
+        {/* Sidebar */}
+        <aside className={cn(
+          "border-r border-border bg-card flex flex-col p-6 transition-all duration-500 ease-in-out overflow-hidden",
+          isSidebarCollapsed ? "w-20 px-4" : "w-72"
+        )}>
+          <div className={cn("flex items-center gap-3 mb-10 overflow-hidden", isSidebarCollapsed ? "justify-center" : "px-2 justify-between")}>
+            <div 
+              className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+              onClick={() => {
+                setActiveTab('dashboard');
+                setSelectedProject(null);
+              }}
+            >
+              <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20 shrink-0">
+                <Zap className="text-white" fill="white" size={24} />
+              </div>
+              {!isSidebarCollapsed && <span className="text-2xl font-display font-bold tracking-tight animate-in fade-in slide-in-from-left-4 duration-500">Dash AI</span>}
             </div>
+            
+            {!isSidebarCollapsed && (
+              <button 
+                onClick={toggleTheme}
+                className="p-2.5 rounded-xl border border-border hover:bg-background/50 transition-all text-text-muted"
+              >
+                {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+              </button>
+            )}
+          </div>
 
-            {/* Active Ribbon Content */}
-            <div className="h-20 flex items-center px-6 gap-6 overflow-x-auto no-scrollbar">
-              {/* Group: Clipboard/Basic (Empty for now) */}
-              <div className="flex flex-col gap-1 items-center px-2">
-                <div className="flex items-center gap-2 opacity-30 grayscale cursor-not-allowed">
-                  <button className="p-2 rounded-lg"><Share2 size={20} /></button>
+          <nav className="flex-1 space-y-2">
+            <SidebarItem 
+              icon={LayoutDashboard} 
+              label={isSidebarCollapsed ? "" : "Dashboards"} 
+              active={activeTab === 'dashboard'} 
+              onClick={() => setActiveTab('dashboard')} 
+            />
+            <SidebarItem 
+              icon={BarChart3} 
+              label={isSidebarCollapsed ? "" : "Analytics"} 
+              active={activeTab === 'analytics'} 
+              onClick={() => setActiveTab('analytics')} 
+            />
+            <SidebarItem 
+              icon={Database} 
+              label={isSidebarCollapsed ? "" : "Data Sources"} 
+              active={activeTab === 'data'} 
+              onClick={() => setActiveTab('data')} 
+            />
+            <SidebarItem 
+              icon={Network} 
+              label={isSidebarCollapsed ? "" : "ER Diagram"} 
+              active={activeTab === 'er'} 
+              onClick={() => setActiveTab('er')} 
+            />
+            <SidebarItem 
+              icon={MessageSquare} 
+              label={isSidebarCollapsed ? "" : "AI Chat"} 
+              active={activeTab === 'chat'} 
+              onClick={() => setActiveTab('chat')} 
+            />
+          </nav>
+
+          <div className="mt-auto space-y-2">
+            <SidebarItem icon={SettingsIcon} label={isSidebarCollapsed ? "" : "Settings"} onClick={() => {}} />
+            <SidebarItem icon={LogOut} label={isSidebarCollapsed ? "" : "Logout"} onClick={handleLogout} />
+            
+            {!isSidebarCollapsed && (
+              <div className="p-4 rounded-2xl bg-background/50 border border-border mt-6 animate-in fade-in slide-in-from-bottom-4">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xs">
+                    {user?.full_name?.charAt(0).toUpperCase() || 'U'}
+                  </div>
+                  <div className="flex-1 overflow-hidden">
+                    <p className="text-sm font-semibold truncate">{user?.full_name || 'User'}</p>
+                    <p className="text-xs text-text-muted truncate">{user?.email || 'No email'}</p>
+                  </div>
                 </div>
-                <span className="text-[8px] font-black uppercase tracking-tighter text-text-muted">Clipboard</span>
-              </div>
-
-              <div className="h-10 w-[1px] bg-border/40" />
-
-              {/* Group: Data Selection */}
-              <div className="flex flex-col gap-1 items-center px-2 border-r border-border/40">
-                <div className="flex items-center gap-1">
-                  <button 
-                    onClick={() => setShowGetData(true)}
-                    className="flex flex-col items-center gap-1 px-4 py-1 hover:bg-background rounded-xl transition-all group border border-transparent hover:border-border"
-                  >
-                    <div className="p-2 bg-primary/10 rounded-lg text-primary group-hover:bg-primary group-hover:text-white transition-colors shadow-sm">
-                      <Database size={20} />
-                    </div>
-                    <span className="text-[9px] font-bold">Get Data</span>
-                  </button>
-                  <button 
-                    onClick={() => setActiveTab('analytics')}
-                    className="flex flex-col items-center gap-1 px-4 py-1 hover:bg-background rounded-xl transition-all group border border-transparent hover:border-border"
-                  >
-                    <div className="p-2 bg-indigo-500/10 rounded-lg text-indigo-500 group-hover:bg-indigo-500 group-hover:text-white transition-colors shadow-sm">
-                      <TrendingUp size={20} />
-                    </div>
-                    <span className="text-[9px] font-bold">Transform</span>
-                  </button>
-                </div>
-                <span className="text-[8px] font-black uppercase tracking-tighter text-text-muted">Data</span>
-              </div>
-
-              {/* Group: Visuals */}
-              <div className="flex flex-col gap-1 items-center px-2 border-r border-border/40">
-                <div className="flex items-center gap-1">
-                  <button 
-                    onClick={() => setShowManualCreator(true)}
-                    className="flex flex-col items-center gap-1 px-4 py-1 hover:bg-background rounded-xl transition-all group border border-transparent hover:border-border"
-                  >
-                    <div className="p-2 bg-orange-500/10 rounded-lg text-orange-500 group-hover:bg-orange-500 group-hover:text-white transition-colors shadow-sm">
-                      <BarChart3 size={20} />
-                    </div>
-                    <span className="text-[9px] font-bold">New Visual</span>
-                  </button>
-                  <button 
-                    onClick={() => setActiveTab('chat')}
-                    className="flex flex-col items-center gap-1 px-4 py-1 hover:bg-background rounded-xl transition-all group border border-transparent hover:border-border"
-                  >
-                    <div className="p-2 bg-purple-500/10 rounded-lg text-purple-500 group-hover:bg-purple-500 group-hover:text-white transition-colors shadow-sm">
-                      <MessageSquare size={20} />
-                    </div>
-                    <span className="text-[9px] font-bold">AI Insight</span>
-                  </button>
-                </div>
-                <span className="text-[8px] font-black uppercase tracking-tighter text-text-muted">Insert</span>
-              </div>
-
-              {/* Group: Modeling */}
-              <div className="flex flex-col gap-1 items-center px-2">
-                <div className="flex items-center gap-1">
-                  <button 
-                    onClick={() => setActiveTab('er')}
-                    className="flex flex-col items-center gap-1 px-4 py-1 hover:bg-background rounded-xl transition-all group border border-transparent hover:border-border"
-                  >
-                    <div className={cn(
-                      "p-2 rounded-lg transition-all group-hover:scale-105 shadow-sm",
-                      activeTab === 'er' ? "bg-red-500 text-white shadow-lg shadow-red-500/30" : "bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white"
-                    )}>
-                      <Network size={20} />
-                    </div>
-                    <span className="text-[9px] font-bold">Relationships</span>
-                  </button>
-                </div>
-                <span className="text-[8px] font-black uppercase tracking-tighter text-text-muted">Modeling</span>
-              </div>
-
-              {/* Share & Collab */}
-              <div className="ml-auto flex items-center gap-3">
-                <button className="flex items-center gap-2 px-6 py-2 bg-primary text-white rounded-xl font-bold text-xs shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all hover:scale-[1.02] active:scale-[0.98]">
-                  <Share2 size={14} />
-                  Share Project
+                <button className="w-full py-2 bg-card border border-border rounded-lg text-xs font-semibold text-foreground hover:bg-background transition-colors">
+                  Account
                 </button>
               </div>
-            </div>
+            )}
           </div>
-        </header>
+        </aside>
+
+        {/* Main Content Area */}
+        <main className="flex-1 flex flex-col overflow-hidden relative">
 
         {/* Scrollable Area */}
         <div className="flex-1 overflow-y-auto p-8 bg-background transition-colors duration-300">
@@ -582,8 +605,7 @@ const App = () => {
             </div>
           )}
           </div>
-        </div>
-      </main>
+        </main>
 
       {/* Right Sidebar - Selected Tables */}
       {currentDataset && (
@@ -655,6 +677,7 @@ const App = () => {
           </div>
         </aside>
       )}
+    </div>
 
       {showManualCreator && (
         <ManualDashboardCreator 

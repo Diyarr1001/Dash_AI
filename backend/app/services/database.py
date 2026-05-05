@@ -9,13 +9,9 @@ class DatabaseManager:
         self.duckdb_path = settings.DUCKDB_DATABASE_PATH
         self._duck_conn = None
         
-        # PostgreSQL setup
-        if settings.DATABASE_URL:
-            self.pg_engine = create_engine(settings.DATABASE_URL)
-            self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.pg_engine)
-        else:
-            self.pg_engine = None
-            self.SessionLocal = None
+        # Main Database setup (PostgreSQL or local SQLite)
+        self.pg_engine = create_engine(settings.DATABASE_URL)
+        self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.pg_engine)
         
     def _get_mssql_conn_str(self, server, database, user=None, password=None, use_windows_auth=True):
         driver = "{ODBC Driver 17 for SQL Server}"
