@@ -10,7 +10,7 @@ services:
         value: 8000
       - key: DATABASE_URL
         value: sqlite:///./dash_ai.db
-      - key: OPENAI_API_KEY
-        fromContext: openai_api_key
+      - key: GROQ_API_KEY
+        fromContext: groq_api_key
       - key: GEMINI_API_KEY
         fromContext: gemini_api_key
