@@ -1,0 +1,9 @@
+{
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "https://dash-ai-backend.onrender.com/api/$1" },
+    { "source": "/(.*)", "destination": "/frontend/$1" }
+  ],
+  "framework": "vite",
+  "buildCommand": "cd frontend && npm install && npm run build",
+  "outputDirectory": "frontend/dist"
+}
