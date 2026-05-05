@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { Upload, File, X, CheckCircle2, Loader2 } from 'lucide-react';
+import { Upload, X, CheckCircle2, Loader2 } from 'lucide-react';
 import { api } from '../lib/api';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';

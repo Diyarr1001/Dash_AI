@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { 
-  FileSpreadsheet, Database, Server, User, Lock, Globe, 
+  FileSpreadsheet, Database, Server, Lock, Globe, 
   ArrowLeft, CheckCircle2, Loader2, X, AlertCircle, 
-  Search, CheckSquare, Square, ChevronRight, Layers
+  Search, ChevronRight, Layers
 } from 'lucide-react';
 import { api } from '../lib/api';
 
@@ -13,7 +13,7 @@ interface GetDataModalProps {
   onSourceConnected: (data: any) => void;
 }
 
-type WizardStep = 'select' | 'file_options' | 'db_options' | 'postgres' | 'mysql' | 'mssql_auth' | 'mssql_db_select' | 'mssql_table_select' | 'gsheets';
+type WizardStep = 'select' | 'file_options' | 'db_options' | 'postgres' | 'mysql' | 'mssql_auth' | 'mssql_db_select' | 'mssql_table_select' | 'gsheets' | 'pg_table_select' | 'mysql_table_select';
 
 export const GetDataModal = ({ isOpen, onClose, onFileClick, onSourceConnected }: GetDataModalProps) => {
   const [step, setStep] = useState<WizardStep>('select');
@@ -34,7 +34,7 @@ export const GetDataModal = ({ isOpen, onClose, onFileClick, onSourceConnected }
     use_windows_auth: true
   });
 
-  const [config, setConfig] = useState({
+  const [config] = useState({
     host: 'localhost',
     port: '5432',
     database: '',
@@ -43,7 +43,7 @@ export const GetDataModal = ({ isOpen, onClose, onFileClick, onSourceConnected }
     schema: 'public'
   });
 
-  const [mysqlConfig, setMysqlConfig] = useState({
+  const [mysqlConfig] = useState({
     host: 'localhost',
     port: '3306',
     database: '',
@@ -122,21 +122,8 @@ export const GetDataModal = ({ isOpen, onClose, onFileClick, onSourceConnected }
 
   // --- OLD CONNECTORS (STILL IN PLACE) ---
 
-  const handleConnect = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await api.post('/data/discover-postgres-tables', config);
-      setDiscoveredTables(response.data.tables);
-      setSelectedTables(response.data.tables);
-      setStep('pg_table_select');
-    } catch (err: any) {
-      setError(err.response?.data?.detail || 'Postgres connection failed.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  // --- OLD CONNECTORS (STILL IN PLACE) ---
+
 
   const handlePgFinalConnect = async () => {
     if (selectedTables.length === 0) {
@@ -159,18 +146,7 @@ export const GetDataModal = ({ isOpen, onClose, onFileClick, onSourceConnected }
 
   const handleConnectMysql = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await api.post('/data/discover-mysql-tables', mysqlConfig);
-      setDiscoveredTables(response.data.tables);
-      setSelectedTables(response.data.tables);
-      setStep('mysql_table_select');
-    } catch (err: any) {
-      setError(err.response?.data?.detail || 'MySQL connection failed.');
-    } finally {
-      setLoading(false);
-    }
+    console.log("MySQL connection not implemented in this view version");
   };
 
   const handleMysqlFinalConnect = async () => {

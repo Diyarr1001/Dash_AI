@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, Play, Plus, Trash2, ArrowRight } from 'lucide-react';
+import { Sparkles, Play, Trash2 } from 'lucide-react';
 import { api } from '../lib/api';
 
 interface Transformation {
