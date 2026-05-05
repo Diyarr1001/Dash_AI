@@ -5,6 +5,7 @@ import {
   Search, ChevronRight, Layers
 } from 'lucide-react';
 import { api } from '../lib/api';
+import { FileUploader } from './FileUploader';
 
 interface GetDataModalProps {
   isOpen: boolean;
@@ -253,6 +254,15 @@ export const GetDataModal = ({ isOpen, onClose, onSourceConnected }: GetDataModa
                 <h3 className="font-bold text-base mb-1">Database</h3>
                 <p className="text-xs text-text-muted">Live server connection.</p>
               </button>
+            </div>
+          ) : step === 'file_options' ? (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <FileUploader 
+                onUploadSuccess={(data) => {
+                  onSourceConnected(data);
+                  onClose();
+                }} 
+              />
             </div>
           ) : step === 'db_options' ? (
             <div className="grid grid-cols-3 gap-4">
