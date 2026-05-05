@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1',
+  baseURL: import.meta.env.VITE_API_URL || '/_/backend/api/v1',
   timeout: 180000, // 3 minutes for deep AI analysis
   headers: {
     'Content-Type': 'application/json',
