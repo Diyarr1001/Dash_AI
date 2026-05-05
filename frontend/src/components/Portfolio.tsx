@@ -1,7 +1,7 @@
 import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
-import { LayoutDashboard, Calendar, ChevronRight, BarChart2, Trash2, Loader2 } from 'lucide-react';
+import { LayoutDashboard, Calendar, ChevronRight, BarChart2, Trash2, Loader2, Share2 } from 'lucide-react';
 
 interface PortfolioProps {
   onSelect?: (project: any) => void;
@@ -49,9 +49,31 @@ export const Portfolio = ({ onSelect }: PortfolioProps) => {
           <h1 className="text-3xl mb-1">Your Portfolio</h1>
           <p className="text-slate-500">Manage and share your published analytics projects.</p>
         </div>
-        <div className="flex items-center gap-2 bg-white border border-slate-200 p-1 rounded-xl shadow-sm">
-          <button className="px-4 py-1.5 text-sm font-medium bg-slate-100 text-slate-900 rounded-lg">All Projects</button>
-          <button className="px-4 py-1.5 text-sm font-medium text-slate-500 hover:text-slate-900">Shared</button>
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={() => {
+              navigator.clipboard.writeText(window.location.href);
+              const btn = document.getElementById('share-portfolio-btn');
+              if (btn) {
+                const originalText = btn.innerHTML;
+                btn.innerHTML = 'Copied!';
+                btn.classList.add('bg-green-500', 'text-white');
+                setTimeout(() => {
+                  btn.innerHTML = originalText;
+                  btn.classList.remove('bg-green-500', 'text-white');
+                }, 2000);
+              }
+            }}
+            id="share-portfolio-btn"
+            className="px-6 py-2 bg-primary text-white rounded-xl font-bold text-sm shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all flex items-center gap-2"
+          >
+            <Share2 size={16} />
+            Share Portfolio
+          </button>
+          <div className="flex items-center gap-2 bg-white border border-slate-200 p-1 rounded-xl shadow-sm">
+            <button className="px-4 py-1.5 text-sm font-medium bg-slate-100 text-slate-900 rounded-lg">All Projects</button>
+            <button className="px-4 py-1.5 text-sm font-medium text-slate-500 hover:text-slate-900">Shared</button>
+          </div>
         </div>
       </div>
 
@@ -68,6 +90,24 @@ export const Portfolio = ({ onSelect }: PortfolioProps) => {
                 <BarChart2 size={48} className="text-text-muted/20 group-hover:text-primary/20 transition-colors" />
               </div>
               <div className="absolute top-4 right-4 flex gap-2">
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigator.clipboard.writeText(`${window.location.origin}/dashboard/${db.id}`);
+                    const target = e.currentTarget;
+                    const originalHTML = target.innerHTML;
+                    target.innerHTML = '<span class="text-[10px] font-bold">Copied!</span>';
+                    target.classList.add('bg-green-500', 'text-white');
+                    setTimeout(() => {
+                      target.innerHTML = originalHTML;
+                      target.classList.remove('bg-green-500', 'text-white');
+                    }, 2000);
+                  }}
+                  className="bg-card/80 hover:bg-primary/10 hover:text-primary backdrop-blur-md p-2 rounded-xl border border-border shadow-sm transition-all"
+                  title="Share Project"
+                >
+                  <Share2 size={16} />
+                </button>
                 <button 
                   onClick={(e) => handleDelete(e, db.id)}
                   className="bg-card/80 hover:bg-red-500/10 hover:text-red-500 backdrop-blur-md p-2 rounded-xl border border-border shadow-sm transition-all"

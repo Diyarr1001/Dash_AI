@@ -3,19 +3,24 @@ import {
   LayoutDashboard, 
   BarChart3, 
   Database, 
+  FileUp, 
   MessageSquare, 
   Settings as SettingsIcon,
   Share2,
   TrendingUp,
   Plus,
   Search,
+  User,
   Zap,
   X,
   Sun,
   Moon,
   CheckCircle2,
   Network,
-  Save
+  ChevronRight,
+  ChevronDown,
+  Table,
+  LogOut
 } from 'lucide-react';
 import { ERDiagramView } from './components/ERDiagramView';
 import { clsx, type ClassValue } from 'clsx';
@@ -28,10 +33,8 @@ import { Portfolio } from './components/Portfolio';
 import { WhatIfAnalysis } from './components/WhatIfAnalysis';
 import { ForecastView } from './components/ForecastView';
 import { LoginPage } from './components/LoginPage';
-import { LogOut } from 'lucide-react';
 import { DashboardView } from './components/DashboardView';
 import { GetDataModal } from './components/GetDataModal';
-import { ManualDashboardCreator } from './components/ManualDashboardCreator';
 import { api } from './lib/api';
 
 function cn(...inputs: ClassValue[]) {
@@ -49,15 +52,14 @@ const SidebarItem = ({ icon: Icon, label, active, onClick }: SidebarItemProps) =
   <button
     onClick={onClick}
     className={cn(
-      "w-full flex items-center rounded-xl transition-all duration-200 group",
-      label ? "gap-3 px-4 py-3" : "justify-center p-3",
+      "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group",
       active 
         ? "bg-primary text-white shadow-lg shadow-primary/30" 
         : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
     )}
   >
     <Icon size={20} className={cn("transition-transform group-hover:scale-110", active ? "text-white" : "text-slate-400")} />
-    {label && <span className="font-medium animate-in fade-in slide-in-from-left-2 duration-300">{label}</span>}
+    <span className="font-medium">{label}</span>
   </button>
 );
 
@@ -72,8 +74,6 @@ const App = () => {
   const [selectedProject, setSelectedProject] = useState<any>(null);
   const [showUploader, setShowUploader] = useState(false);
   const [showGetData, setShowGetData] = useState(false);
-  const [showManualCreator, setShowManualCreator] = useState(false);
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const showToast = (message: string) => {
@@ -107,12 +107,15 @@ const App = () => {
 
   const handleDatabaseConnected = (data: any) => {
     setCurrentDataset({
-      id: 'postgres_source',
-      filename: `DB: ${data.database}`,
-      table_name: `${data.alias}.${data.tables[0]}`, // Full path for DuckDB
+      id: 'source_' + Math.random().toString(36).substr(2, 9),
+      filename: data.filename || `DB: ${data.database}`,
+      table_name: data.alias ? `${data.alias}.${data.tables[0]}` : data.tables[0],
       columns: data.columns,
       preview: data.preview,
-      tables: data.tables.map((t: string) => `${data.alias}.${t}`)
+      tables: data.alias 
+        ? data.tables.map((t: string) => `${data.alias}.${t}`)
+        : data.tables,
+      total_rows: data.total_rows
     });
     setActiveTab('analytics');
     setShowGetData(false);
@@ -135,254 +138,127 @@ const App = () => {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-background text-foreground transition-colors duration-300 overflow-hidden">
+    <div className="flex h-screen bg-background text-foreground transition-colors duration-300">
       <GetDataModal 
         isOpen={showGetData}
         onClose={() => setShowGetData(false)}
+        onFileClick={() => setShowUploader(true)}
         onSourceConnected={handleDatabaseConnected}
       />
-
-      {/* Professional Power BI Ribbon Header - Full Width */}
-      <header className="border-b border-border bg-card/95 backdrop-blur-md z-30 transition-colors duration-300 select-none">
-        {/* Tier 1: Project Bar */}
-        <div className="h-9 border-b border-border/40 flex items-center px-4 justify-between bg-muted/20">
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-3">
-              <button 
-                onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                className="p-1.5 hover:bg-background rounded text-text-muted hover:text-primary transition-colors"
-                title="Toggle Sidebar"
-              >
-                <LayoutDashboard size={14} />
-              </button>
-              <div className="flex items-center gap-1">
-                <button className="px-3 py-1 text-[11px] font-bold hover:bg-background rounded transition-colors text-primary border border-transparent hover:border-primary/20">
-                  File
-                </button>
-                <button className="p-1.5 hover:bg-background rounded text-text-muted hover:text-primary transition-colors" title="Save">
-                  <Save size={14} />
-                </button>
-              </div>
+      {/* Sidebar */}
+      <aside className="w-72 border-r border-border bg-card flex flex-col p-6 transition-colors duration-300">
+        <div className="flex items-center justify-between px-2 mb-10">
+          <div 
+            className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={() => {
+              setActiveTab('dashboard');
+              setSelectedProject(null);
+            }}
+          >
+            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
+              <Zap className="text-white" fill="white" size={24} />
             </div>
-            <div className="h-4 w-[1px] bg-border/60" />
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] font-bold tracking-tight text-foreground/80">
-                {currentDataset?.filename || 'Untitled Analysis'} - Dash AI
-              </span>
-              <div className="flex items-center gap-1 px-1.5 py-0.5 bg-green-500/10 rounded border border-green-500/20 shadow-sm scale-90">
-                <span className="text-[9px] font-black text-green-600 uppercase">Saved</span>
-                <CheckCircle2 size={8} className="text-green-600" />
-              </div>
-            </div>
+            <span className="text-2xl font-display font-bold tracking-tight">Dash AI</span>
           </div>
           
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 bg-background/50 px-3 py-1 rounded-lg border border-border focus-within:ring-1 focus-within:ring-primary/30 transition-all">
-              <Search size={12} className="text-text-muted" />
-              <input 
-                type="text" 
-                placeholder="Tell AI what to do..." 
-                className="bg-transparent border-none outline-none text-[10px] w-48 text-foreground placeholder:text-text-muted"
-              />
+          <button 
+            onClick={toggleTheme}
+            className="p-2.5 rounded-xl border border-border hover:bg-background/50 transition-all text-text-muted"
+          >
+            {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+          </button>
+        </div>
+
+        <nav className="flex-1 space-y-2">
+          <SidebarItem 
+            icon={LayoutDashboard} 
+            label="Dashboards" 
+            active={activeTab === 'dashboard'} 
+            onClick={() => setActiveTab('dashboard')} 
+          />
+          <SidebarItem 
+            icon={BarChart3} 
+            label="Analytics" 
+            active={activeTab === 'analytics'} 
+            onClick={() => setActiveTab('analytics')} 
+          />
+          <SidebarItem 
+            icon={Database} 
+            label="Data Sources" 
+            active={activeTab === 'data'} 
+            onClick={() => setActiveTab('data')} 
+          />
+          <SidebarItem 
+            icon={Network} 
+            label="ER Diagram" 
+            active={activeTab === 'er'} 
+            onClick={() => setActiveTab('er')} 
+          />
+          <SidebarItem 
+            icon={MessageSquare} 
+            label="AI Chat" 
+            active={activeTab === 'chat'} 
+            onClick={() => setActiveTab('chat')} 
+          />
+        </nav>
+
+        <div className="mt-auto space-y-2">
+          <SidebarItem icon={SettingsIcon} label="Settings" onClick={() => {}} />
+          <SidebarItem icon={LogOut} label="Logout" onClick={handleLogout} />
+          <div className="p-4 rounded-2xl bg-background/50 border border-border mt-6">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xs">
+                {user?.full_name?.charAt(0).toUpperCase() || 'U'}
+              </div>
+              <div className="flex-1 overflow-hidden">
+                <p className="text-sm font-semibold truncate">{user?.full_name || 'User'}</p>
+                <p className="text-xs text-text-muted truncate">{user?.email || 'No email'}</p>
+              </div>
             </div>
-            <div className="h-4 w-[1px] bg-border/60" />
-            <button className="text-text-muted hover:text-foreground transition-colors">
-              <SettingsIcon size={14} />
+            <button className="w-full py-2 bg-card border border-border rounded-lg text-xs font-semibold text-foreground hover:bg-background transition-colors">
+              Account
             </button>
           </div>
         </div>
+      </aside>
 
-        {/* Tier 2: Ribbon Tabs & Content */}
-        <div className="flex flex-col">
-          {/* Tab Selectors */}
-          <div className="flex items-center px-6 gap-1 h-8 bg-muted/10 border-b border-border/20">
-            <button className="px-4 h-full text-[10px] font-bold border-b-2 border-primary text-primary transition-all">Home</button>
-            <button className="px-4 h-full text-[10px] font-bold text-text-muted hover:text-foreground transition-all">Insert</button>
-            <button className="px-4 h-full text-[10px] font-bold text-text-muted hover:text-foreground transition-all">Modeling</button>
-            <button className="px-4 h-full text-[10px] font-bold text-text-muted hover:text-foreground transition-all">View</button>
-            <button className="px-4 h-full text-[10px] font-bold text-text-muted hover:text-foreground transition-all">Help</button>
-          </div>
-
-          {/* Active Ribbon Content */}
-          <div className="h-20 flex items-center px-6 gap-6 overflow-x-auto no-scrollbar">
-            {/* Group: Clipboard/Basic (Empty for now) */}
-            <div className="flex flex-col gap-1 items-center px-2">
-              <div className="flex items-center gap-2 opacity-30 grayscale cursor-not-allowed">
-                <button className="p-2 rounded-lg"><Share2 size={20} /></button>
-              </div>
-              <span className="text-[8px] font-black uppercase tracking-tighter text-text-muted">Clipboard</span>
-            </div>
-
-            <div className="h-10 w-[1px] bg-border/40" />
-
-            {/* Group: Data Selection */}
-            <div className="flex flex-col gap-1 items-center px-2 border-r border-border/40">
-              <div className="flex items-center gap-1">
-                <button 
-                  onClick={() => setShowGetData(true)}
-                  className="flex flex-col items-center gap-1 px-4 py-1 hover:bg-background rounded-xl transition-all group border border-transparent hover:border-border"
-                >
-                  <div className="p-2 bg-primary/10 rounded-lg text-primary group-hover:bg-primary group-hover:text-white transition-colors shadow-sm">
-                    <Database size={20} />
-                  </div>
-                  <span className="text-[9px] font-bold">Get Data</span>
-                </button>
-                <button 
-                  onClick={() => setActiveTab('analytics')}
-                  className="flex flex-col items-center gap-1 px-4 py-1 hover:bg-background rounded-xl transition-all group border border-transparent hover:border-border"
-                >
-                  <div className="p-2 bg-indigo-500/10 rounded-lg text-indigo-500 group-hover:bg-indigo-500 group-hover:text-white transition-colors shadow-sm">
-                    <TrendingUp size={20} />
-                  </div>
-                  <span className="text-[9px] font-bold">Transform</span>
-                </button>
-              </div>
-              <span className="text-[8px] font-black uppercase tracking-tighter text-text-muted">Data</span>
-            </div>
-
-            {/* Group: Visuals */}
-            <div className="flex flex-col gap-1 items-center px-2 border-r border-border/40">
-              <div className="flex items-center gap-1">
-                <button 
-                  onClick={() => setShowManualCreator(true)}
-                  className="flex flex-col items-center gap-1 px-4 py-1 hover:bg-background rounded-xl transition-all group border border-transparent hover:border-border"
-                >
-                  <div className="p-2 bg-orange-500/10 rounded-lg text-orange-500 group-hover:bg-orange-500 group-hover:text-white transition-colors shadow-sm">
-                    <BarChart3 size={20} />
-                  </div>
-                  <span className="text-[9px] font-bold">New Visual</span>
-                </button>
-                <button 
-                  onClick={() => setActiveTab('chat')}
-                  className="flex flex-col items-center gap-1 px-4 py-1 hover:bg-background rounded-xl transition-all group border border-transparent hover:border-border"
-                >
-                  <div className="p-2 bg-purple-500/10 rounded-lg text-purple-500 group-hover:bg-purple-500 group-hover:text-white transition-colors shadow-sm">
-                    <MessageSquare size={20} />
-                  </div>
-                  <span className="text-[9px] font-bold">AI Insight</span>
-                </button>
-              </div>
-              <span className="text-[8px] font-black uppercase tracking-tighter text-text-muted">Insert</span>
-            </div>
-
-            {/* Group: Modeling */}
-            <div className="flex flex-col gap-1 items-center px-2">
-              <div className="flex items-center gap-1">
-                <button 
-                  onClick={() => setActiveTab('er')}
-                  className="flex flex-col items-center gap-1 px-4 py-1 hover:bg-background rounded-xl transition-all group border border-transparent hover:border-border"
-                >
-                  <div className={cn(
-                    "p-2 rounded-lg transition-all group-hover:scale-105 shadow-sm",
-                    activeTab === 'er' ? "bg-red-500 text-white shadow-lg shadow-red-500/30" : "bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white"
-                  )}>
-                    <Network size={20} />
-                  </div>
-                  <span className="text-[9px] font-bold">Relationships</span>
-                </button>
-              </div>
-              <span className="text-[8px] font-black uppercase tracking-tighter text-text-muted">Modeling</span>
-            </div>
-
-            {/* Share & Collab */}
-            <div className="ml-auto flex items-center gap-3">
-              <button className="flex items-center gap-2 px-6 py-2 bg-primary text-white rounded-xl font-bold text-xs shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all hover:scale-[1.02] active:scale-[0.98]">
-                <Share2 size={14} />
-                Share Project
-              </button>
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col overflow-hidden">
+        {/* Header */}
+        <header className="h-20 border-b border-border bg-card/80 backdrop-blur-md px-8 flex items-center justify-between sticky top-0 z-10 transition-colors duration-300">
+          <div className="flex items-center gap-4 bg-background/50 px-4 py-2 rounded-xl w-96 border border-border focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+            <Search size={18} className="text-text-muted" />
+            <input 
+              type="text" 
+              placeholder="Ask anything about your data..." 
+              className="bg-transparent border-none outline-none text-sm w-full text-foreground placeholder:text-text-muted"
+            />
+            <div className="flex items-center gap-1 bg-card px-1.5 py-0.5 rounded-md border border-border shadow-sm">
+              <span className="text-[10px] font-bold text-text-muted">⌘</span>
+              <span className="text-[10px] font-bold text-text-muted">K</span>
             </div>
           </div>
-        </div>
-      </header>
 
-      <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar */}
-        <aside className={cn(
-          "border-r border-border bg-card flex flex-col p-6 transition-all duration-500 ease-in-out overflow-hidden",
-          isSidebarCollapsed ? "w-20 px-4" : "w-72"
-        )}>
-          <div className={cn("flex items-center gap-3 mb-10 overflow-hidden", isSidebarCollapsed ? "justify-center" : "px-2 justify-between")}>
-            <div 
-              className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
-              onClick={() => {
-                setActiveTab('dashboard');
-                setSelectedProject(null);
-              }}
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => setShowGetData(true)}
+              className="flex items-center gap-2 px-6 py-2.5 bg-primary text-white rounded-xl font-bold text-sm shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all hover:scale-[1.02] active:scale-[0.98]"
             >
-              <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20 shrink-0">
-                <Zap className="text-white" fill="white" size={24} />
-              </div>
-              {!isSidebarCollapsed && <span className="text-2xl font-display font-bold tracking-tight animate-in fade-in slide-in-from-left-4 duration-500">Dash AI</span>}
-            </div>
-            
-            {!isSidebarCollapsed && (
-              <button 
-                onClick={toggleTheme}
-                className="p-2.5 rounded-xl border border-border hover:bg-background/50 transition-all text-text-muted"
-              >
-                {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
-              </button>
-            )}
+              <Database size={18} />
+              Get Data
+              <ChevronDown size={16} className="ml-1 opacity-50" />
+            </button>
+            <button 
+              onClick={() => {
+                navigator.clipboard.writeText(window.location.href);
+                showToast("Workspace link copied to clipboard!");
+              }}
+              className="p-2.5 text-text-muted hover:bg-background rounded-xl transition-colors border border-transparent hover:border-border"
+            >
+              <Share2 size={20} />
+            </button>
           </div>
-
-          <nav className="flex-1 space-y-2">
-            <SidebarItem 
-              icon={LayoutDashboard} 
-              label={isSidebarCollapsed ? "" : "Dashboards"} 
-              active={activeTab === 'dashboard'} 
-              onClick={() => setActiveTab('dashboard')} 
-            />
-            <SidebarItem 
-              icon={BarChart3} 
-              label={isSidebarCollapsed ? "" : "Analytics"} 
-              active={activeTab === 'analytics'} 
-              onClick={() => setActiveTab('analytics')} 
-            />
-            <SidebarItem 
-              icon={Database} 
-              label={isSidebarCollapsed ? "" : "Data Sources"} 
-              active={activeTab === 'data'} 
-              onClick={() => setActiveTab('data')} 
-            />
-            <SidebarItem 
-              icon={Network} 
-              label={isSidebarCollapsed ? "" : "ER Diagram"} 
-              active={activeTab === 'er'} 
-              onClick={() => setActiveTab('er')} 
-            />
-            <SidebarItem 
-              icon={MessageSquare} 
-              label={isSidebarCollapsed ? "" : "AI Chat"} 
-              active={activeTab === 'chat'} 
-              onClick={() => setActiveTab('chat')} 
-            />
-          </nav>
-
-          <div className="mt-auto space-y-2">
-            <SidebarItem icon={SettingsIcon} label={isSidebarCollapsed ? "" : "Settings"} onClick={() => {}} />
-            <SidebarItem icon={LogOut} label={isSidebarCollapsed ? "" : "Logout"} onClick={handleLogout} />
-            
-            {!isSidebarCollapsed && (
-              <div className="p-4 rounded-2xl bg-background/50 border border-border mt-6 animate-in fade-in slide-in-from-bottom-4">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xs">
-                    {user?.full_name?.charAt(0).toUpperCase() || 'U'}
-                  </div>
-                  <div className="flex-1 overflow-hidden">
-                    <p className="text-sm font-semibold truncate">{user?.full_name || 'User'}</p>
-                    <p className="text-xs text-text-muted truncate">{user?.email || 'No email'}</p>
-                  </div>
-                </div>
-                <button className="w-full py-2 bg-card border border-border rounded-lg text-xs font-semibold text-foreground hover:bg-background transition-colors">
-                  Account
-                </button>
-              </div>
-            )}
-          </div>
-        </aside>
-
-        {/* Main Content Area */}
-        <main className="flex-1 flex flex-col overflow-hidden relative">
+        </header>
 
         {/* Scrollable Area */}
         <div className="flex-1 overflow-y-auto p-8 bg-background transition-colors duration-300">
@@ -400,10 +276,10 @@ const App = () => {
             <div className="space-y-8">
               <div className="flex items-center justify-between">
                 <div>
-                  <h1 className="text-3xl mb-1 font-display font-bold tracking-tight">{currentDataset.filename}</h1>
+                  <h1 className="text-3xl mb-1">{currentDataset.filename}</h1>
                   <div className="flex items-center gap-2 mt-2">
-                    <p className="text-text-muted text-sm font-medium">Active Model:</p>
-                    <code className="bg-primary/10 px-2 py-1 rounded-lg text-primary text-sm font-bold border border-primary/20 shadow-sm">{currentDataset.table_name}</code>
+                    <p className="text-slate-500 text-sm">Active Model:</p>
+                    <code className="bg-primary/10 px-2 py-1 rounded text-primary text-sm font-bold">{currentDataset.table_name}</code>
                   </div>
                 </div>
                 <button 
@@ -417,6 +293,7 @@ const App = () => {
               {/* ETL Layer */}
               <DataTransformation 
                 tableName={currentDataset.table_name} 
+                columns={currentDataset.columns}
                 onTransformationApplied={(newData) => {
                   setCurrentDataset({
                     ...currentDataset,
@@ -555,6 +432,147 @@ const App = () => {
             </div>
           )}
 
+          {activeTab === 'data' && (
+            <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              {currentDataset ? (
+                <div className="grid grid-cols-12 gap-8">
+                  {/* Left: Table List */}
+                  <div className="col-span-4 space-y-6">
+                    <div className="glass rounded-3xl p-6">
+                      <div className="flex items-center justify-between mb-6">
+                        <h3 className="text-lg font-bold">Imported Tables</h3>
+                        <span className="text-[10px] font-black bg-primary/10 text-primary px-2 py-1 rounded-md uppercase tracking-wider">
+                          {currentDataset.tables?.length || 1} Total
+                        </span>
+                      </div>
+                      
+                      <div className="relative mb-4">
+                        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+                        <input 
+                          type="text" 
+                          placeholder="Search tables..."
+                          className="w-full pl-9 pr-4 py-2 bg-background/50 border border-border rounded-xl text-xs outline-none focus:ring-2 focus:ring-primary/20"
+                        />
+                      </div>
+
+                      <div className="space-y-1 max-h-[500px] overflow-y-auto custom-scrollbar pr-2">
+                        {(currentDataset.tables || [currentDataset.table_name]).map((table: string) => (
+                          <button 
+                            key={table}
+                            onClick={async () => {
+                              try {
+                                const res = await api.get(`/data/preview/${table}`);
+                                setCurrentDataset({
+                                  ...currentDataset,
+                                  table_name: table,
+                                  columns: res.data.columns,
+                                  preview: res.data.data
+                                });
+                              } catch (err) {
+                                showToast("Failed to switch table.");
+                              }
+                            }}
+                            className={`w-full flex items-center justify-between p-3 rounded-xl transition-all text-left group ${
+                              currentDataset.table_name === table 
+                                ? 'bg-primary text-white shadow-lg shadow-primary/20' 
+                                : 'hover:bg-primary/5 text-text-muted hover:text-foreground'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <Database size={14} className={currentDataset.table_name === table ? 'text-white' : 'text-primary'} />
+                              <span className="text-xs font-semibold truncate">{table.split('.').pop()}</span>
+                            </div>
+                            <ChevronRight size={12} className={`opacity-0 group-hover:opacity-100 transition-opacity ${currentDataset.table_name === table ? 'text-white' : ''}`} />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right: Table Metadata */}
+                  <div className="col-span-8 space-y-8">
+                    <div className="glass rounded-3xl p-8">
+                      <div className="flex items-center justify-between mb-8">
+                        <div>
+                          <h2 className="text-2xl font-bold">{currentDataset.table_name.split('.').pop()}</h2>
+                          <p className="text-sm text-text-muted mt-1">Schema and configuration for this table.</p>
+                        </div>
+                        <div className="px-4 py-2 bg-background border border-border rounded-2xl flex items-center gap-3">
+                          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                          <span className="text-[10px] font-black uppercase tracking-widest">Live Sync Active</span>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-6 mb-10">
+                        <div className="p-5 rounded-2xl bg-background/50 border border-border">
+                          <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-1">Total Rows</p>
+                          <p className="text-2xl font-display font-bold">{(currentDataset.total_rows || 0).toLocaleString()}</p>
+                        </div>
+                        <div className="p-5 rounded-2xl bg-background/50 border border-border">
+                          <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-1">Columns</p>
+                          <p className="text-2xl font-display font-bold">{currentDataset.columns.length}</p>
+                        </div>
+                        <div className="p-5 rounded-2xl bg-background/50 border border-border">
+                          <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-1">Source Type</p>
+                          <p className="text-2xl font-display font-bold capitalize">{currentDataset.filename.split(':')[0]}</p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-4">
+                        <h4 className="text-sm font-bold flex items-center gap-2">
+                          <Table size={16} className="text-primary" />
+                          Column Definitions
+                        </h4>
+                        <div className="border border-border rounded-2xl overflow-hidden">
+                          <table className="w-full text-left">
+                            <thead className="bg-background/50 text-[10px] font-black uppercase tracking-widest text-text-muted">
+                              <tr>
+                                <th className="px-6 py-4">Name</th>
+                                <th className="px-6 py-4">Type</th>
+                                <th className="px-6 py-4">Actions</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-border">
+                              {currentDataset.columns.map((col: any) => (
+                                <tr key={col.name} className="hover:bg-primary/5 transition-colors">
+                                  <td className="px-6 py-4 text-sm font-semibold">{col.name}</td>
+                                  <td className="px-6 py-4">
+                                    <span className="px-2 py-1 bg-primary/10 text-primary rounded text-[10px] font-mono font-bold">{col.type}</span>
+                                  </td>
+                                  <td className="px-6 py-4">
+                                    <button className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline">Edit</button>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="py-20 text-center space-y-6">
+                  <div className="w-20 h-20 bg-card border border-border rounded-3xl flex items-center justify-center text-text-muted mx-auto shadow-sm">
+                    <Database size={40} />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold">No Data Sources Connected</h2>
+                    <p className="text-text-muted mt-2 max-w-sm mx-auto text-sm">
+                      Connect a database or upload a file to start exploring and analyzing your data.
+                    </p>
+                  </div>
+                  <button 
+                    onClick={() => setShowGetData(true)}
+                    className="px-8 py-3 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all"
+                  >
+                    Connect Your First Source
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
           {activeTab === 'er' && currentDataset && (
             <ERDiagramView tables={currentDataset.tables || [currentDataset.table_name]} />
           )}
@@ -603,9 +621,9 @@ const App = () => {
               </div>
             </div>
           )}
-            </div>
           </div>
-        </main>
+        </div>
+      </main>
 
       {/* Right Sidebar - Selected Tables */}
       {currentDataset && (
@@ -676,19 +694,6 @@ const App = () => {
             </div>
           </div>
         </aside>
-      )}
-    </div>
-
-      {showManualCreator && (
-        <ManualDashboardCreator 
-          tables={currentDataset?.tables || []}
-          onClose={() => setShowManualCreator(false)}
-          onSave={() => {
-            setShowManualCreator(false);
-            setActiveTab('dashboard');
-            showToast("Manual dashboard saved successfully!");
-          }}
-        />
       )}
 
       {toastMessage && (

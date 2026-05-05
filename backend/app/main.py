@@ -1,13 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-import logging
-from fastapi import Request
-from fastapi.responses import JSONResponse
-
-# Setup logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 from app.api.v1.endpoints import data, query, dashboards, project, analytics, auth
 from app.models.models import SQLModel
@@ -56,30 +49,38 @@ app.include_router(analytics.router, prefix=f"{settings.API_V1_STR}/analytics", 
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"], # Temporarily allow all for debugging
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-    expose_headers=["*"],
 )
+
+import time
+import logging
+from fastapi import Request
+from fastapi.responses import JSONResponse
+
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Error handling middleware
 @app.middleware("http")
-async def error_handling_middleware(request: Request, call_next):
+async def add_process_time_header(request: Request, call_next):
+    start_time = time.time()
     try:
         response = await call_next(request)
+        process_time = time.time() - start_time
+        response.headers["X-Process-Time"] = str(process_time)
         return response
     except Exception as e:
         logger.error(f"Unhandled exception: {str(e)}", exc_info=True)
+        # Create response
         response = JSONResponse(
             status_code=500,
-            content={
-                "detail": "Internal server error",
-                "message": str(e),
-                "path": request.url.path
-            }
+            content={"detail": "Internal server error", "message": str(e)}
         )
-        # Always add CORS headers to error responses
+        # Manually add CORS headers since we're bypassing the CORSMiddleware by returning early
         response.headers["Access-Control-Allow-Origin"] = "*"
         response.headers["Access-Control-Allow-Methods"] = "*"
         response.headers["Access-Control-Allow-Headers"] = "*"

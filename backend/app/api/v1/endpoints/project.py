@@ -22,14 +22,18 @@ async def get_er_diagram(request: ERDiagramRequest):
         schemas = {}
         for table in tables:
             try:
-                # Handle quoted parts for DuckDB schemas (e.g. "alias"."table")
-                quoted_table = ".".join([f'"{p}"' for p in table.split('.')])
-                schema_info = db_manager.execute_duck_query(f"DESCRIBE {quoted_table}")
+                # Try unquoted first, then quoted if that fails
+                try:
+                    schema_info = db_manager.execute_duck_query(f"DESCRIBE {table}")
+                except:
+                    quoted_table = ".".join([f'"{p}"' for p in table.split('.')])
+                    schema_info = db_manager.execute_duck_query(f"DESCRIBE {quoted_table}")
+                
                 schemas[table] = "\n".join([f"{row[0]} ({row[1]})" for row in schema_info])
             except Exception as e:
-                print(f"⚠️ Could not get schema for {table}: {str(e)}")
+                print(f"❌ ER Diagram Schema Error for {table}: {str(e)}")
         
-        print(f"⏱️ Schema collection took {time.time() - start_time:.2f}s")
+        print(f"⏱️ Schema collection took {time.time() - start_time:.2f}s. Found {len(schemas)} schemas.")
 
         # 1. Build all NODES locally (No AI needed for nodes)
         nodes = []
@@ -54,8 +58,15 @@ async def get_er_diagram(request: ERDiagramRequest):
             compact_schemas[name] = "\n".join(lines)
             
         ai_start = time.time()
-        # Create a specialized mini-prompt for relationship discovery
-        edges = await ai_service.infer_relationships_only(compact_schemas)
+        # Only call AI for relationship discovery if we have more than 1 table
+        edges = []
+        if len(compact_schemas) > 1:
+            try:
+                edges = await ai_service.infer_relationships_only(compact_schemas)
+            except Exception as e:
+                print(f"⚠️ AI Edge Inference Failed: {str(e)}")
+                edges = []
+        
         print(f"⏱️ AI Inference (Edges Only) took {time.time() - ai_start:.2f}s")
         
         diagram_data = {"nodes": nodes, "edges": edges}

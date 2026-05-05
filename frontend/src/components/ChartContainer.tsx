@@ -1,7 +1,7 @@
-import { useRef } from 'react';
+import React, { useRef } from 'react';
 import ReactECharts from 'echarts-for-react';
 import html2canvas from 'html2canvas';
-import { Download, AlertCircle } from 'lucide-react';
+import { Download, AlertCircle, Database } from 'lucide-react';
 
 interface ChartContainerProps {
   type: 'bar' | 'line' | 'pie' | 'scatter' | 'heatmap';

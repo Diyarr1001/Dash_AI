@@ -9,6 +9,9 @@ from app.services.database import db_manager
 from pydantic import BaseModel
 from typing import List, Optional
 
+def make_json_safe(df):
+    return df.replace({np.nan: None}).to_dict(orient="records")
+
 router = APIRouter()
 
 class PostgresConfig(BaseModel):
@@ -18,6 +21,7 @@ class PostgresConfig(BaseModel):
     user: str
     password: str
     schema_name: str = "public"
+    selected_tables: Optional[List[str]] = None
 
 class MysqlConfig(BaseModel):
     host: str
@@ -92,6 +96,45 @@ async def discover_mysql_tables(config: MysqlConfig):
         )
         return {"tables": tables}
     except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+class GSheetsConfig(BaseModel):
+    url: str
+
+@router.post("/connect-gsheets")
+async def connect_gsheets(config: GSheetsConfig):
+    try:
+        # Generate a deterministic table name based on the URL
+        import hashlib
+        table_name = f"gsheet_{hashlib.md5(config.url.encode()).hexdigest()[:8]}"
+        
+        # Load into DuckDB
+        table_names = db_manager.load_gsheet_to_duck(config.url, table_name)
+        active_table = table_names[0]
+        
+        # Get schema
+        schema_info = db_manager.execute_duck_query(f"DESCRIBE {active_table}")
+        columns = [{"name": row[0], "type": str(row[1]), "nullable": row[2]} for row in schema_info]
+        
+        # Preview data
+        preview_df = db_manager.get_df_from_duck(f"SELECT * FROM {active_table} LIMIT 10")
+        
+        # Get row count
+        count_res = db_manager.execute_duck_query(f"SELECT COUNT(*) FROM {active_table}")
+        total_rows = count_res[0][0] if count_res else 0
+        
+        return {
+            "status": "connected",
+            "filename": "Google Sheet",
+            "table_name": active_table,
+            "tables": table_names,
+            "columns": columns,
+            "preview": make_json_safe(preview_df),
+            "total_rows": total_rows,
+            "total_db_rows": total_rows
+        }
+    except Exception as e:
+        print(f"❌ GSheets Error: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.post("/connect-postgres")

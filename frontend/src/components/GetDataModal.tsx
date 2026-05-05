@@ -1,21 +1,21 @@
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   FileSpreadsheet, Database, Server, User, Lock, Globe, 
-  ArrowLeft, Loader2, X, AlertCircle, 
-  Search, ChevronRight, Layers
+  ArrowLeft, CheckCircle2, Loader2, X, AlertCircle, 
+  Search, CheckSquare, Square, ChevronRight, Layers
 } from 'lucide-react';
 import { api } from '../lib/api';
-import { FileUploader } from './FileUploader';
 
 interface GetDataModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onFileClick: () => void;
   onSourceConnected: (data: any) => void;
 }
 
-type WizardStep = 'select' | 'file_options' | 'db_options' | 'postgres' | 'mysql' | 'mssql_auth' | 'mssql_db_select' | 'mssql_table_select' | 'pg_table_select' | 'mysql_table_select';
+type WizardStep = 'select' | 'file_options' | 'db_options' | 'postgres' | 'mysql' | 'mssql_auth' | 'mssql_db_select' | 'mssql_table_select' | 'gsheets';
 
-export const GetDataModal = ({ isOpen, onClose, onSourceConnected }: GetDataModalProps) => {
+export const GetDataModal = ({ isOpen, onClose, onFileClick, onSourceConnected }: GetDataModalProps) => {
   const [step, setStep] = useState<WizardStep>('select');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -50,6 +50,8 @@ export const GetDataModal = ({ isOpen, onClose, onSourceConnected }: GetDataModa
     user: 'root',
     password: ''
   });
+
+  const [gsheetsUrl, setGsheetsUrl] = useState('');
 
   // Moved early return after hooks to comply with React Rules of Hooks
 
@@ -190,6 +192,22 @@ export const GetDataModal = ({ isOpen, onClose, onSourceConnected }: GetDataModa
     }
   };
 
+  const handleConnectGSheets = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!gsheetsUrl) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await api.post('/data/connect-gsheets', { url: gsheetsUrl });
+      onSourceConnected({ ...response.data, source_type: 'gsheets' });
+      onClose();
+    } catch (err: any) {
+      setError(err.response?.data?.detail || 'Google Sheets connection failed. Ensure the sheet is public.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={onClose} />
@@ -207,6 +225,7 @@ export const GetDataModal = ({ isOpen, onClose, onSourceConnected }: GetDataModa
                   else if (step === 'mssql_table_select') setStep('mssql_db_select');
                   else if (step === 'pg_table_select') setStep('postgres');
                   else if (step === 'mysql_table_select') setStep('mysql');
+                  else if (step === 'gsheets') setStep('file_options');
                 }}
                 className="p-2 hover:bg-card rounded-full transition-colors text-text-muted hover:text-foreground"
               >
@@ -254,15 +273,6 @@ export const GetDataModal = ({ isOpen, onClose, onSourceConnected }: GetDataModa
                 <h3 className="font-bold text-base mb-1">Database</h3>
                 <p className="text-xs text-text-muted">Live server connection.</p>
               </button>
-            </div>
-          ) : step === 'file_options' ? (
-            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <FileUploader 
-                onUploadSuccess={(data) => {
-                  onSourceConnected(data);
-                  onClose();
-                }} 
-              />
             </div>
           ) : step === 'db_options' ? (
             <div className="grid grid-cols-3 gap-4">
@@ -350,136 +360,6 @@ export const GetDataModal = ({ isOpen, onClose, onSourceConnected }: GetDataModa
                 {loading ? 'Authenticating...' : 'Connect to Server'}
               </button>
             </form>
-          ) : step === 'postgres' ? (
-            <form onSubmit={handleConnect} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-text-muted ml-1">Host</label>
-                  <input 
-                    type="text" 
-                    value={config.host}
-                    onChange={e => setConfig({...config, host: e.target.value})}
-                    className="w-full px-4 py-3 bg-background border border-border rounded-xl text-sm"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-text-muted ml-1">Port</label>
-                  <input 
-                    type="text" 
-                    value={config.port}
-                    onChange={e => setConfig({...config, port: e.target.value})}
-                    className="w-full px-4 py-3 bg-background border border-border rounded-xl text-sm"
-                    required
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-text-muted ml-1">Database</label>
-                <input 
-                  type="text" 
-                  value={config.database}
-                  onChange={e => setConfig({...config, database: e.target.value})}
-                  className="w-full px-4 py-3 bg-background border border-border rounded-xl text-sm"
-                  required
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-text-muted ml-1">Username</label>
-                  <input 
-                    type="text" 
-                    value={config.user}
-                    onChange={e => setConfig({...config, user: e.target.value})}
-                    className="w-full px-4 py-3 bg-background border border-border rounded-xl text-sm"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-text-muted ml-1">Password</label>
-                  <input 
-                    type="password" 
-                    value={config.password}
-                    onChange={e => setConfig({...config, password: e.target.value})}
-                    className="w-full px-4 py-3 bg-background border border-border rounded-xl text-sm"
-                    required
-                  />
-                </div>
-              </div>
-              <button 
-                type="submit" 
-                disabled={loading}
-                className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-indigo-700 transition-all shadow-lg disabled:opacity-50 mt-4"
-              >
-                {loading ? <Loader2 className="animate-spin" /> : <Database size={18} />}
-                {loading ? 'Connecting...' : 'Scan Database'}
-              </button>
-            </form>
-          ) : step === 'mysql' ? (
-            <form onSubmit={handleConnectMysql} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-text-muted ml-1">Host</label>
-                  <input 
-                    type="text" 
-                    value={mysqlConfig.host}
-                    onChange={e => setMysqlConfig({...mysqlConfig, host: e.target.value})}
-                    className="w-full px-4 py-3 bg-background border border-border rounded-xl text-sm"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-text-muted ml-1">Port</label>
-                  <input 
-                    type="text" 
-                    value={mysqlConfig.port}
-                    onChange={e => setMysqlConfig({...mysqlConfig, port: e.target.value})}
-                    className="w-full px-4 py-3 bg-background border border-border rounded-xl text-sm"
-                    required
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-text-muted ml-1">Database</label>
-                <input 
-                  type="text" 
-                  value={mysqlConfig.database}
-                  onChange={e => setMysqlConfig({...mysqlConfig, database: e.target.value})}
-                  className="w-full px-4 py-3 bg-background border border-border rounded-xl text-sm"
-                  required
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-text-muted ml-1">Username</label>
-                  <input 
-                    type="text" 
-                    value={mysqlConfig.user}
-                    onChange={e => setMysqlConfig({...mysqlConfig, user: e.target.value})}
-                    className="w-full px-4 py-3 bg-background border border-border rounded-xl text-sm"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-text-muted ml-1">Password</label>
-                  <input 
-                    type="password" 
-                    value={mysqlConfig.password}
-                    onChange={e => setMysqlConfig({...mysqlConfig, password: e.target.value})}
-                    className="w-full px-4 py-3 bg-background border border-border rounded-xl text-sm"
-                    required
-                  />
-                </div>
-              </div>
-              <button 
-                type="submit" 
-                disabled={loading}
-                className="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-blue-700 transition-all shadow-lg disabled:opacity-50 mt-4"
-              >
-                {loading ? <Loader2 className="animate-spin" /> : <Server size={18} />}
-                {loading ? 'Connecting...' : 'Scan Database'}
-              </button>
-            </form>
           ) : step === 'mssql_db_select' ? (
             <div className="space-y-3">
               {discoveredDbs.map(db => (
@@ -555,6 +435,60 @@ export const GetDataModal = ({ isOpen, onClose, onSourceConnected }: GetDataModa
                 </button>
               </div>
             </div>
+          ) : step === 'file_options' ? (
+            <div className="grid grid-cols-2 gap-4 py-4">
+              <button 
+                onClick={() => {
+                  onFileClick();
+                  onClose();
+                }}
+                className="group p-6 rounded-3xl border border-border bg-background hover:border-green-500/50 hover:shadow-lg transition-all text-left"
+              >
+                <div className="w-12 h-12 rounded-2xl bg-green-500/10 flex items-center justify-center text-green-500 mb-4 group-hover:scale-110 transition-transform">
+                  <FileSpreadsheet size={24} />
+                </div>
+                <h3 className="font-bold text-base mb-1">Local File</h3>
+                <p className="text-xs text-text-muted">Excel, CSV, or Parquet.</p>
+              </button>
+              <button 
+                onClick={() => setStep('gsheets')}
+                className="group p-6 rounded-3xl border border-border bg-background hover:border-emerald-500/50 hover:shadow-lg transition-all text-left"
+              >
+                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 mb-4 group-hover:scale-110 transition-transform">
+                  <Globe size={24} />
+                </div>
+                <h3 className="font-bold text-base mb-1">Google Sheets</h3>
+                <p className="text-xs text-text-muted">Connect via public link.</p>
+              </button>
+            </div>
+          ) : step === 'gsheets' ? (
+            <form onSubmit={handleConnectGSheets} className="space-y-6">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-text-muted ml-1">Spreadsheet URL</label>
+                <div className="relative">
+                  <Globe size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted" />
+                  <input 
+                    type="url" 
+                    value={gsheetsUrl}
+                    onChange={e => setGsheetsUrl(e.target.value)}
+                    placeholder="https://docs.google.com/spreadsheets/d/..."
+                    className="w-full pl-12 pr-4 py-3 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none transition-all text-sm"
+                    required
+                  />
+                </div>
+                <p className="text-[10px] text-text-muted mt-2 ml-1 italic">
+                  💡 Make sure your sheet is set to "Anyone with the link can view".
+                </p>
+              </div>
+              <button 
+                type="submit"
+                disabled={loading || !gsheetsUrl}
+                className="w-full py-4 bg-emerald-500 text-white rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-emerald-600 transition-all shadow-lg disabled:opacity-50"
+              >
+                {loading ? <Loader2 className="animate-spin" /> : <CheckCircle2 size={18} />}
+                {loading ? 'Connecting...' : 'Connect Google Sheet'}
+              </button>
+            </form>
           ) : (
             /* Fallback for other DBs */
             <p className="text-center text-sm text-text-muted py-8">Configuration for this source is coming soon.</p>

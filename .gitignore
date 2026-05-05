@@ -1,29 +1,23 @@
-# Environments
-.env
-.env.*
-venv/
-env/
+# Dependencies
+node_modules/
 __pycache__/
 *.pyc
 
-# Dependencies
-node_modules/
-dist/
-build/
+# Environment variables
+.env
 
-# Databases
+# Database
 *.duckdb
 *.duckdb.wal
-*.db
-*.sqlite
+
+# Uploads
+backend/uploads/*
+!backend/uploads/.gitkeep
 
 # IDEs
 .vscode/
 .idea/
 
-# OS
-.DS_Store
-Thumbs.db
-
-# Logs
-*.log
+# Build
+dist/
+build/

@@ -9,9 +9,13 @@ class DatabaseManager:
         self.duckdb_path = settings.DUCKDB_DATABASE_PATH
         self._duck_conn = None
         
-        # Main Database setup (PostgreSQL or local SQLite)
-        self.pg_engine = create_engine(settings.DATABASE_URL)
-        self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.pg_engine)
+        # PostgreSQL setup
+        if settings.DATABASE_URL:
+            self.pg_engine = create_engine(settings.DATABASE_URL)
+            self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.pg_engine)
+        else:
+            self.pg_engine = None
+            self.SessionLocal = None
         
     def _get_mssql_conn_str(self, server, database, user=None, password=None, use_windows_auth=True):
         driver = "{ODBC Driver 17 for SQL Server}"
@@ -72,6 +76,35 @@ class DatabaseManager:
             return [table_name]
         else:
             raise ValueError(f"Unsupported file extension: {ext}")
+
+    def load_gsheet_to_duck(self, url, table_name):
+        """Load a public Google Sheet into DuckDB using the CSV export URL."""
+        try:
+            import re
+            # Extract spreadsheet ID from URL
+            match = re.search(r"/spreadsheets/d/([a-zA-Z0-9-_]+)", url)
+            if not match:
+                raise ValueError("Invalid Google Sheets URL. Please make sure it's a valid link.")
+            
+            sheet_id = match.group(1)
+            
+            # Check for GID (specific sheet/tab)
+            gid_match = re.search(r"gid=([0-9]+)", url)
+            gid_suffix = f"&gid={gid_match.group(1)}" if gid_match else ""
+            
+            # Use the CSV export endpoint
+            csv_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv{gid_suffix}"
+            
+            # Load into DuckDB
+            # Ensure httpfs is loaded for URL access
+            self.duck_conn.execute("INSTALL httpfs; LOAD httpfs;")
+            
+            # read_csv_auto is very powerful for detecting types from Google's CSV export
+            self.duck_conn.execute(f"CREATE OR REPLACE TABLE {table_name} AS SELECT * FROM read_csv_auto('{csv_url}')")
+            return [table_name]
+        except Exception as e:
+            print(f"❌ Google Sheets Error: {str(e)}")
+            raise Exception(f"Failed to load Google Sheet: {str(e)}")
 
     def connect_postgres(self, host, port, database, user, password, schema='public', selected_tables=None):
         """Attach a PostgreSQL database and create views for selected tables."""

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { BarChart2, Trash2, ChevronRight, Loader2, Sparkles, Send } from 'lucide-react';
 import { ChartContainer } from './ChartContainer';
 import { api } from '../lib/api';
@@ -15,6 +15,7 @@ export const DashboardView = ({ project, onClose }: DashboardViewProps) => {
   const [updatePrompt, setUpdatePrompt] = useState('');
   const [kpis, setKpis] = useState<any[]>([]);
   const [charts, setCharts] = useState<any[]>([]);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const refreshData = async () => {

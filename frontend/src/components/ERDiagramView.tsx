@@ -12,7 +12,7 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { api } from '../lib/api';
-import { Database, Table, Loader2, Share2 } from 'lucide-react';
+import { Database, Table, ArrowRight, Loader2, Share2, Download, Maximize2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -89,6 +89,7 @@ export const ERDiagramView: React.FC<ERDiagramViewProps> = ({ tables }) => {
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const fetchDiagramData = useCallback(async () => {
     if (!tables || tables.length === 0) return;
@@ -207,8 +208,16 @@ export const ERDiagramView: React.FC<ERDiagramViewProps> = ({ tables }) => {
             {isLoading ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
             Regenerate
           </button>
-          <button className="p-2.5 bg-slate-900 text-white rounded-xl shadow-lg hover:bg-slate-800 transition-all">
-            <Share2 size={18} />
+          <button 
+            onClick={() => {
+              navigator.clipboard.writeText(window.location.href);
+              setCopied(true);
+              setTimeout(() => setCopied(false), 2000);
+            }}
+            className="flex items-center gap-2 px-4 py-2.5 bg-slate-900 text-white rounded-xl shadow-lg hover:bg-slate-800 transition-all text-xs font-bold"
+          >
+            {copied ? <CheckCircle2 size={16} /> : <Share2 size={16} />}
+            {copied ? 'Copied!' : 'Share'}
           </button>
         </div>
       </div>
