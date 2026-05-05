@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
-import { Plus, Trash2, Layout, BarChart3, PieChart, TrendingUp, Save, X } from 'lucide-react';
+import { useState } from 'react';
+import { Plus, Trash2, Layout, BarChart3, Save, X } from 'lucide-react';
 import { ChartContainer } from './ChartContainer';
 import { api } from '../lib/api';
 
 interface Visual {
   id: string;
-  type: string;
+  type: "line" | "bar" | "pie" | "scatter" | "heatmap";
   title: string;
   table: string;
   mappings: any;

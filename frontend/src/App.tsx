@@ -3,22 +3,19 @@ import {
   LayoutDashboard, 
   BarChart3, 
   Database, 
-  FileUp, 
   MessageSquare, 
   Settings as SettingsIcon,
   Share2,
   TrendingUp,
   Plus,
   Search,
-  User,
   Zap,
   X,
   Sun,
   Moon,
   CheckCircle2,
   Network,
-  Save,
-  ChevronDown
+  Save
 } from 'lucide-react';
 import { ERDiagramView } from './components/ERDiagramView';
 import { clsx, type ClassValue } from 'clsx';
@@ -140,7 +137,6 @@ const App = () => {
       <GetDataModal 
         isOpen={showGetData}
         onClose={() => setShowGetData(false)}
-        onFileClick={() => setShowUploader(true)}
         onSourceConnected={handleDatabaseConnected}
       />
       {/* Sidebar */}
@@ -399,7 +395,6 @@ const App = () => {
               {/* ETL Layer */}
               <DataTransformation 
                 tableName={currentDataset.table_name} 
-                columns={currentDataset.columns}
                 onTransformationApplied={(newData) => {
                   setCurrentDataset({
                     ...currentDataset,

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Sparkles, Loader2, CheckCircle2, ChevronRight, BarChart, AlertCircle, Database } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Sparkles, Loader2, CheckCircle2, BarChart, AlertCircle, Database } from 'lucide-react';
 import { api } from '../lib/api';
 import { ChartContainer } from './ChartContainer';
 import { clsx, type ClassValue } from 'clsx';

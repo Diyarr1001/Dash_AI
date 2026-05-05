@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Sparkles, Play, Plus, Trash2, ArrowRight } from 'lucide-react';
+import { useState } from 'react';
+import { Sparkles, Play, Trash2 } from 'lucide-react';
 import { api } from '../lib/api';
 
 interface Transformation {
@@ -11,11 +11,11 @@ interface Transformation {
 
 interface DataTransformationProps {
   tableName: string;
-  columns: any[];
+  columns?: any[];
   onTransformationApplied: (newData: any) => void;
 }
 
-export const DataTransformation = ({ tableName, columns, onTransformationApplied }: DataTransformationProps) => {
+export const DataTransformation = ({ tableName, onTransformationApplied }: DataTransformationProps) => {
   const [prompt, setPrompt] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [transformations, setTransformations] = useState<Transformation[]>([]);

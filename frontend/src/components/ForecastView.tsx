@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { api } from '../lib/api';
 import { ChartContainer } from './ChartContainer';
-import { TrendingUp, Calendar, Loader2, RefreshCw, RotateCcw } from 'lucide-react';
+import { TrendingUp, RefreshCw, RotateCcw } from 'lucide-react';
 
 interface ForecastViewProps {
   tableName: string;

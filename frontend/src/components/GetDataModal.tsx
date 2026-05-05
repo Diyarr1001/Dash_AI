@@ -1,21 +1,20 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { 
   FileSpreadsheet, Database, Server, User, Lock, Globe, 
-  ArrowLeft, CheckCircle2, Loader2, X, AlertCircle, 
-  Search, CheckSquare, Square, ChevronRight, Layers
+  ArrowLeft, Loader2, X, AlertCircle, 
+  Search, ChevronRight, Layers
 } from 'lucide-react';
 import { api } from '../lib/api';
 
 interface GetDataModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onFileClick: () => void;
   onSourceConnected: (data: any) => void;
 }
 
-type WizardStep = 'select' | 'file_options' | 'db_options' | 'postgres' | 'mysql' | 'mssql_auth' | 'mssql_db_select' | 'mssql_table_select';
+type WizardStep = 'select' | 'file_options' | 'db_options' | 'postgres' | 'mysql' | 'mssql_auth' | 'mssql_db_select' | 'mssql_table_select' | 'pg_table_select' | 'mysql_table_select';
 
-export const GetDataModal = ({ isOpen, onClose, onFileClick, onSourceConnected }: GetDataModalProps) => {
+export const GetDataModal = ({ isOpen, onClose, onSourceConnected }: GetDataModalProps) => {
   const [step, setStep] = useState<WizardStep>('select');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -339,6 +338,136 @@ export const GetDataModal = ({ isOpen, onClose, onFileClick, onSourceConnected }
               >
                 {loading ? <Loader2 className="animate-spin" /> : <ChevronRight size={18} />}
                 {loading ? 'Authenticating...' : 'Connect to Server'}
+              </button>
+            </form>
+          ) : step === 'postgres' ? (
+            <form onSubmit={handleConnect} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-text-muted ml-1">Host</label>
+                  <input 
+                    type="text" 
+                    value={config.host}
+                    onChange={e => setConfig({...config, host: e.target.value})}
+                    className="w-full px-4 py-3 bg-background border border-border rounded-xl text-sm"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-text-muted ml-1">Port</label>
+                  <input 
+                    type="text" 
+                    value={config.port}
+                    onChange={e => setConfig({...config, port: e.target.value})}
+                    className="w-full px-4 py-3 bg-background border border-border rounded-xl text-sm"
+                    required
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-text-muted ml-1">Database</label>
+                <input 
+                  type="text" 
+                  value={config.database}
+                  onChange={e => setConfig({...config, database: e.target.value})}
+                  className="w-full px-4 py-3 bg-background border border-border rounded-xl text-sm"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-text-muted ml-1">Username</label>
+                  <input 
+                    type="text" 
+                    value={config.user}
+                    onChange={e => setConfig({...config, user: e.target.value})}
+                    className="w-full px-4 py-3 bg-background border border-border rounded-xl text-sm"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-text-muted ml-1">Password</label>
+                  <input 
+                    type="password" 
+                    value={config.password}
+                    onChange={e => setConfig({...config, password: e.target.value})}
+                    className="w-full px-4 py-3 bg-background border border-border rounded-xl text-sm"
+                    required
+                  />
+                </div>
+              </div>
+              <button 
+                type="submit" 
+                disabled={loading}
+                className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-indigo-700 transition-all shadow-lg disabled:opacity-50 mt-4"
+              >
+                {loading ? <Loader2 className="animate-spin" /> : <Database size={18} />}
+                {loading ? 'Connecting...' : 'Scan Database'}
+              </button>
+            </form>
+          ) : step === 'mysql' ? (
+            <form onSubmit={handleConnectMysql} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-text-muted ml-1">Host</label>
+                  <input 
+                    type="text" 
+                    value={mysqlConfig.host}
+                    onChange={e => setMysqlConfig({...mysqlConfig, host: e.target.value})}
+                    className="w-full px-4 py-3 bg-background border border-border rounded-xl text-sm"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-text-muted ml-1">Port</label>
+                  <input 
+                    type="text" 
+                    value={mysqlConfig.port}
+                    onChange={e => setMysqlConfig({...mysqlConfig, port: e.target.value})}
+                    className="w-full px-4 py-3 bg-background border border-border rounded-xl text-sm"
+                    required
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-text-muted ml-1">Database</label>
+                <input 
+                  type="text" 
+                  value={mysqlConfig.database}
+                  onChange={e => setMysqlConfig({...mysqlConfig, database: e.target.value})}
+                  className="w-full px-4 py-3 bg-background border border-border rounded-xl text-sm"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-text-muted ml-1">Username</label>
+                  <input 
+                    type="text" 
+                    value={mysqlConfig.user}
+                    onChange={e => setMysqlConfig({...mysqlConfig, user: e.target.value})}
+                    className="w-full px-4 py-3 bg-background border border-border rounded-xl text-sm"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-text-muted ml-1">Password</label>
+                  <input 
+                    type="password" 
+                    value={mysqlConfig.password}
+                    onChange={e => setMysqlConfig({...mysqlConfig, password: e.target.value})}
+                    className="w-full px-4 py-3 bg-background border border-border rounded-xl text-sm"
+                    required
+                  />
+                </div>
+              </div>
+              <button 
+                type="submit" 
+                disabled={loading}
+                className="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-blue-700 transition-all shadow-lg disabled:opacity-50 mt-4"
+              >
+                {loading ? <Loader2 className="animate-spin" /> : <Server size={18} />}
+                {loading ? 'Connecting...' : 'Scan Database'}
               </button>
             </form>
           ) : step === 'mssql_db_select' ? (

@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { Sliders, TrendingUp, ArrowRight, Zap } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { TrendingUp, ArrowRight, Zap } from 'lucide-react';
 
 interface WhatIfAnalysisProps {
   data: any[];

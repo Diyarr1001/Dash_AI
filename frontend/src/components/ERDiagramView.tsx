@@ -12,7 +12,7 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { api } from '../lib/api';
-import { Database, Table, ArrowRight, Loader2, Share2, Download, Maximize2 } from 'lucide-react';
+import { Database, Table, Loader2, Share2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
