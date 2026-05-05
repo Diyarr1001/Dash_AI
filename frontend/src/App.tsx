@@ -290,7 +290,6 @@ const App = () => {
               {/* ETL Layer */}
               <DataTransformation 
                 tableName={currentDataset.table_name} 
-                columns={currentDataset.columns}
                 onTransformationApplied={(newData) => {
                   setCurrentDataset({
                     ...currentDataset,

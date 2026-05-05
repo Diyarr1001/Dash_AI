@@ -11,11 +11,10 @@ interface Transformation {
 
 interface DataTransformationProps {
   tableName: string;
-  columns: any[];
   onTransformationApplied: (newData: any) => void;
 }
 
-export const DataTransformation = ({ tableName, columns, onTransformationApplied }: DataTransformationProps) => {
+export const DataTransformation = ({ tableName, onTransformationApplied }: DataTransformationProps) => {
   const [prompt, setPrompt] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [transformations, setTransformations] = useState<Transformation[]>([]);
