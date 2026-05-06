@@ -162,7 +162,7 @@ const App = () => {
           </div>
         </main>
       ) : (
-        <>
+        <div className="flex w-full overflow-hidden">
           <GetDataModal 
             isOpen={showGetData}
             onClose={() => setShowGetData(false)}
@@ -717,7 +717,7 @@ const App = () => {
             </div>
           </div>
         </aside>
-      </>
+      </div>
     )}
 
       {toastMessage && (
