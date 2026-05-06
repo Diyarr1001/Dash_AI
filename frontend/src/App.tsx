@@ -149,7 +149,7 @@ const App = () => {
   return (
     <div className="flex h-screen bg-background text-foreground transition-colors duration-300">
       {/* Shared Dashboard View (Bypass Sidebar) */}
-      {isPublicView ? (
+      {isPublicView ? 
         <main className="flex-1 overflow-hidden">
           <div className="h-full overflow-y-auto bg-background p-4 md:p-12">
             <DashboardView 
@@ -161,7 +161,7 @@ const App = () => {
             />
           </div>
         </main>
-      ) : (
+       : 
         <div className="flex w-full overflow-hidden">
           <GetDataModal 
             isOpen={showGetData}
@@ -718,7 +718,7 @@ const App = () => {
           </div>
         </aside>
       </div>
-    )}
+    }
 
       {toastMessage && (
         <div className="fixed bottom-6 right-6 bg-slate-900 border border-slate-700 text-white px-6 py-4 rounded-2xl shadow-2xl z-[100] flex items-center gap-3 animate-in fade-in slide-in-from-bottom-4">
