@@ -146,10 +146,10 @@ const App = () => {
   if (!user && !isPublicView) {
     return <LoginPage onLoginSuccess={(u) => setUser(u)} />;
   }
-  return (
-    <div className="flex h-screen bg-background text-foreground transition-colors duration-300">
-      {/* Shared Dashboard View (Bypass Sidebar) */}
-      {isPublicView ? 
+
+  const renderMainContent = () => {
+    if (isPublicView) {
+      return (
         <main className="flex-1 overflow-hidden">
           <div className="h-full overflow-y-auto bg-background p-4 md:p-12">
             <DashboardView 
@@ -161,14 +161,17 @@ const App = () => {
             />
           </div>
         </main>
-       : 
-        <div className="flex w-full overflow-hidden">
-          <GetDataModal 
-            isOpen={showGetData}
-            onClose={() => setShowGetData(false)}
-            onFileClick={() => setShowUploader(true)}
-            onSourceConnected={handleDatabaseConnected}
-          />
+      );
+    }
+
+    return (
+      <div className="flex w-full overflow-hidden">
+        <GetDataModal 
+          isOpen={showGetData}
+          onClose={() => setShowGetData(false)}
+          onFileClick={() => setShowUploader(true)}
+          onSourceConnected={handleDatabaseConnected}
+        />
           {/* Sidebar */}
           <aside className="w-72 border-r border-border bg-card flex flex-col p-6 transition-colors duration-300">
         <div className="flex items-center justify-between px-2 mb-10">
@@ -718,7 +721,12 @@ const App = () => {
           </div>
         </aside>
       </div>
-    }
+    );
+  };
+
+  return (
+    <div className="flex h-screen bg-background text-foreground transition-colors duration-300">
+      {renderMainContent()}
 
       {toastMessage && (
         <div className="fixed bottom-6 right-6 bg-slate-900 border border-slate-700 text-white px-6 py-4 rounded-2xl shadow-2xl z-[100] flex items-center gap-3 animate-in fade-in slide-in-from-bottom-4">
