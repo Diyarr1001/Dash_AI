@@ -221,21 +221,16 @@ const App = () => {
   };
 
   const renderMainContent = () => {
-    if (isPublicView || (activeTab === 'view_dashboard' && selectedProject)) {
+    if (isPublicView) {
       return (
         <main className="flex-1 overflow-hidden">
           <div className="h-full overflow-y-auto bg-background p-4 md:p-12">
             <DashboardView
-              project={selectedProject}
               projectId={publicProjectId || ''}
               onClose={() => {
-                if (isPublicView) window.location.href = window.location.origin;
-                else {
-                  setSelectedProject(null);
-                  setActiveTab('dashboard');
-                }
+                window.location.href = window.location.origin;
               }}
-              isReadOnly={isPublicView}
+              isReadOnly={true}
             />
           </div>
         </main>
@@ -369,6 +364,14 @@ const App = () => {
           <div className="flex-1 overflow-y-auto p-8 bg-background transition-colors duration-300">
             <div className="max-w-6xl mx-auto">
               {activeTab === 'dashboard' && <Portfolio onSelect={handleSelectProject} />}
+
+              {activeTab === 'view_dashboard' && selectedProject && (
+                <DashboardView
+                  project={selectedProject}
+                  onClose={() => setActiveTab('dashboard')}
+                  isReadOnly={false}
+                />
+              )}
 
               {activeTab === 'analytics' && currentDataset && (
                 <div className="space-y-8">
