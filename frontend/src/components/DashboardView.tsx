@@ -117,20 +117,18 @@ export const DashboardView = ({ project: initialProject, projectId, onClose, isR
   if (!project || !project.config) return null;
 
   return (
-    <div className="space-y-10 animate-in fade-in slide-in-from-bottom-10 duration-700 pb-40">
-      {/* Header */}
-      <div className="flex items-center justify-between border-b border-border pb-6 transition-colors duration-300">
-        <div className="space-y-1">
-          {!isReadOnly && (
+    <div className="space-y-10 animate-in fade-in slide-in-from-bottom-10 duration-700">
+      {/* Header - Hidden for Clean View */}
+      {!isReadOnly && (
+        <div className="flex items-center justify-between border-b border-border pb-6 transition-colors duration-300">
+          <div className="space-y-1">
             <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-widest cursor-pointer hover:opacity-70 transition-opacity" onClick={onClose}>
               Dashboards <ChevronRight size={14} />
             </div>
-          )}
-          <h3 className="text-3xl font-display font-bold text-foreground">{project.title}</h3>
-          <p className="text-text-muted">{project.description || 'AI-Powered Analytics Dashboard'}</p>
-        </div>
-        
-        {!isReadOnly && (
+            <h3 className="text-3xl font-display font-bold text-foreground">{project.title}</h3>
+            <p className="text-text-muted">{project.description || 'AI-Powered Analytics Dashboard'}</p>
+          </div>
+          
           <div className="flex gap-3">
             {(isLoading || isUpdating) && (
               <div className="flex items-center gap-2 px-4 py-2 bg-background/50 text-text-muted rounded-xl text-xs font-bold border border-border">
@@ -149,8 +147,15 @@ export const DashboardView = ({ project: initialProject, projectId, onClose, isR
               <Trash2 size={20} />
             </button>
           </div>
-        )}
-      </div>
+        </div>
+      )}
+
+      {isReadOnly && (
+        <div className="pb-4">
+          <h3 className="text-4xl font-display font-bold text-foreground tracking-tight">{project.title}</h3>
+          <p className="text-lg text-text-muted mt-2">{project.description}</p>
+        </div>
+      )}
 
       {isLoading && kpis.length === 0 && charts.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-40 gap-4">
