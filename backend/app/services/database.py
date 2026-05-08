@@ -83,10 +83,14 @@ class DatabaseManager:
         else:
             raise ValueError(f"Unsupported file extension: {ext}")
 
-    def load_gsheet_to_duck(self, url, table_name):
-        """Load a public Google Sheet into DuckDB using the CSV export URL."""
+    def load_gsheet_to_duck(self, url, prefix):
+        """Load all sheets from a public Google Sheet into DuckDB as separate tables."""
         try:
             import re
+            import pandas as pd
+            import urllib.request
+            import io
+            
             # Extract spreadsheet ID from URL
             match = re.search(r"/spreadsheets/d/([a-zA-Z0-9-_]+)", url)
             if not match:
@@ -94,20 +98,34 @@ class DatabaseManager:
             
             sheet_id = match.group(1)
             
-            # Check for GID (specific sheet/tab)
-            gid_match = re.search(r"gid=([0-9]+)", url)
-            gid_suffix = f"&gid={gid_match.group(1)}" if gid_match else ""
+            # Use the XLSX export endpoint to get ALL sheets
+            xlsx_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=xlsx"
             
-            # Use the CSV export endpoint
-            csv_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv{gid_suffix}"
+            # Download the file
+            try:
+                with urllib.request.urlopen(xlsx_url) as response:
+                    content = response.read()
+            except Exception as e:
+                raise Exception(f"Failed to download Google Sheet: {str(e)}")
             
-            # Load into DuckDB
-            # Ensure httpfs is loaded for URL access
-            self.duck_conn.execute("INSTALL httpfs; LOAD httpfs;")
+            # Read all sheets into a dictionary of DataFrames
+            # sheet_name=None tells pandas to read all sheets
+            sheets_dict = pd.read_excel(io.BytesIO(content), sheet_name=None)
             
-            # read_csv_auto is very powerful for detecting types from Google's CSV export
-            self.duck_conn.execute(f"CREATE OR REPLACE TABLE {table_name} AS SELECT * FROM read_csv_auto('{csv_url}')")
-            return [table_name]
+            table_names = []
+            for sheet_name, df in sheets_dict.items():
+                # Clean sheet name for SQL table name
+                clean_name = re.sub(r'[^a-zA-Z0-9_]', '_', sheet_name).lower()
+                final_table_name = f"{prefix}_{clean_name}"
+                
+                # Register the DataFrame in DuckDB
+                self.duck_conn.register(f"temp_{final_table_name}", df)
+                self.duck_conn.execute(f"CREATE OR REPLACE TABLE {final_table_name} AS SELECT * FROM temp_{final_table_name}")
+                self.duck_conn.unregister(f"temp_{final_table_name}")
+                
+                table_names.append(final_table_name)
+            
+            return table_names
         except Exception as e:
             print(f"❌ Google Sheets Error: {str(e)}")
             raise Exception(f"Failed to load Google Sheet: {str(e)}")
