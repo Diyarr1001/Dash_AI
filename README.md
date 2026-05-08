@@ -4,6 +4,10 @@ Dash AI is a next-generation business intelligence platform that merges the powe
 
 ---
 
+### 📖 [Explore All Features](FEATURES.md)
+
+---
+
 ## 🚀 Quick Start (Windows)
 
 The easiest way to get started is to use the automated startup script:
