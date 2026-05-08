@@ -127,38 +127,56 @@ async def generate_full_project(request: ProjectRequest):
     print(f"🚀 Starting Deep Scan generation for table: {request.table_name}")
     try:
         # 1. Get Schema Info
-        schema_info = db_manager.execute_duck_query(f"DESCRIBE {request.table_name}")
+        # Always quote table name for safety
+        quoted_table = f'"{request.table_name}"'
+        try:
+            schema_info = db_manager.execute_duck_query(f"DESCRIBE {quoted_table}")
+        except:
+            # Fallback if double quoting fails (e.g. if it already has quotes or dots)
+            schema_info = db_manager.execute_duck_query(f"DESCRIBE {request.table_name}")
+            quoted_table = request.table_name
+
         schema_str = "\n".join([f"{row[0]} ({row[1]})" for row in schema_info])
         
         # 2. PERFORM DEEP DATA SCAN (Analyze entire dataset)
         print(f"🔍 Deep Scanning entire dataset for {request.table_name}...")
-        row_count_res = db_manager.execute_duck_query(f"SELECT COUNT(*) FROM {request.table_name}")
+        row_count_res = db_manager.execute_duck_query(f"SELECT COUNT(*) FROM {quoted_table}")
         total_rows = row_count_res[0][0]
         
         detailed_context = [f"### MASTER DATA PROFILE (Total Rows: {total_rows})"]
         for col_row in schema_info:
             col_name = col_row[0]
             col_type = col_row[1].upper()
+            quoted_col = f'"{col_name}"'
             
-            # Unique Count
-            unique_res = db_manager.execute_duck_query(f"SELECT COUNT(DISTINCT \"{col_name}\") FROM {request.table_name}")
-            unique_count = unique_res[0][0]
-            
-            # Stats for numeric columns
-            stats_str = ""
-            if "INT" in col_type or "FLOAT" in col_type or "DOUBLE" in col_type or "DECIMAL" in col_type:
+            try:
+                # Unique Count
+                unique_res = db_manager.execute_duck_query(f"SELECT COUNT(DISTINCT {quoted_col}) FROM {quoted_table}")
+                unique_count = unique_res[0][0]
+                
+                # Stats for numeric columns
+                stats_str = ""
+                if any(kw in col_type for kw in ["INT", "FLOAT", "DOUBLE", "DECIMAL", "NUMERIC"]):
+                    try:
+                        stats_res = db_manager.execute_duck_query(f"SELECT MIN({quoted_col}), MAX({quoted_col}), AVG({quoted_col}) FROM {quoted_table}")
+                        min_v, max_v, avg_v = stats_res[0]
+                        if min_v is not None:
+                            stats_str = f" | Range: [{min_v} to {max_v}] | Avg: {avg_v:.2f}"
+                    except:
+                        pass
+                
+                # Top Categories
+                top_vals_str = ""
                 try:
-                    stats_res = db_manager.execute_duck_query(f"SELECT MIN(\"{col_name}\"), MAX(\"{col_name}\"), AVG(\"{col_name}\") FROM {request.table_name}")
-                    min_v, max_v, avg_v = stats_res[0]
-                    stats_str = f" | Range: [{min_v} to {max_v}] | Avg: {avg_v:.2f}"
+                    top_vals_res = db_manager.execute_duck_query(f"SELECT {quoted_col}, COUNT(*) as cnt FROM {quoted_table} GROUP BY 1 ORDER BY cnt DESC LIMIT 5")
+                    top_vals_str = ", ".join([f"'{r[0]}' ({r[1]} rows)" for r in top_vals_res if r[0] is not None])
                 except:
                     pass
-            
-            # Top Categories
-            top_vals_res = db_manager.execute_duck_query(f"SELECT \"{col_name}\", COUNT(*) as cnt FROM {request.table_name} GROUP BY 1 ORDER BY cnt DESC LIMIT 5")
-            top_vals_str = ", ".join([f"'{r[0]}' ({r[1]} rows)" for r in top_vals_res if r[0] is not None])
-            
-            detailed_context.append(f"- **{col_name}** ({col_type}): {unique_count} unique values{stats_str}. Top values: {top_vals_str}")
+                
+                detailed_context.append(f"- **{col_name}** ({col_type}): {unique_count} unique values{stats_str}. Top values: {top_vals_str}")
+            except Exception as e:
+                print(f"⚠️ Column scan failed for {col_name}: {str(e)}")
+                detailed_context.append(f"- **{col_name}** ({col_type}): Scan failed")
         
         data_context_str = "\n".join(detailed_context)
         print(f"📊 Full Profile Generated: {len(detailed_context)} columns analyzed.")
@@ -226,33 +244,50 @@ async def update_project(request: UpdateRequest):
     print(f"🔄 Updating dashboard with Advanced Deep Scan context...")
     try:
         # 1. Get Schema Info
-        schema_info = db_manager.execute_duck_query(f"DESCRIBE {request.table_name}")
+        quoted_table = f'"{request.table_name}"'
+        try:
+            schema_info = db_manager.execute_duck_query(f"DESCRIBE {quoted_table}")
+        except:
+            schema_info = db_manager.execute_duck_query(f"DESCRIBE {request.table_name}")
+            quoted_table = request.table_name
+
         schema_str = "\n".join([f"{row[0]} ({row[1]})" for row in schema_info])
         
         # 2. PERFORM DEEP DATA SCAN
-        row_count_res = db_manager.execute_duck_query(f"SELECT COUNT(*) FROM {request.table_name}")
+        row_count_res = db_manager.execute_duck_query(f"SELECT COUNT(*) FROM {quoted_table}")
         total_rows = row_count_res[0][0]
         
         detailed_context = [f"### MASTER DATA PROFILE (Total Rows: {total_rows})"]
         for col_row in schema_info:
             col_name = col_row[0]
             col_type = col_row[1].upper()
+            quoted_col = f'"{col_name}"'
             
-            unique_res = db_manager.execute_duck_query(f"SELECT COUNT(DISTINCT \"{col_name}\") FROM {request.table_name}")
-            unique_count = unique_res[0][0]
-            
-            stats_str = ""
-            if "INT" in col_type or "FLOAT" in col_type or "DOUBLE" in col_type or "DECIMAL" in col_type:
+            try:
+                unique_res = db_manager.execute_duck_query(f"SELECT COUNT(DISTINCT {quoted_col}) FROM {quoted_table}")
+                unique_count = unique_res[0][0]
+                
+                stats_str = ""
+                if any(kw in col_type for kw in ["INT", "FLOAT", "DOUBLE", "DECIMAL", "NUMERIC"]):
+                    try:
+                        stats_res = db_manager.execute_duck_query(f"SELECT MIN({quoted_col}), MAX({quoted_col}), AVG({quoted_col}) FROM {quoted_table}")
+                        min_v, max_v, avg_v = stats_res[0]
+                        if min_v is not None:
+                            stats_str = f" | Range: [{min_v} to {max_v}] | Avg: {avg_v:.2f}"
+                    except:
+                        pass
+                
+                top_vals_str = ""
                 try:
-                    stats_res = db_manager.execute_duck_query(f"SELECT MIN(\"{col_name}\"), MAX(\"{col_name}\"), AVG(\"{col_name}\") FROM {request.table_name}")
-                    min_v, max_v, avg_v = stats_res[0]
-                    stats_str = f" | Range: [{min_v} to {max_v}] | Avg: {avg_v:.2f}"
+                    top_vals_res = db_manager.execute_duck_query(f"SELECT {quoted_col}, COUNT(*) as cnt FROM {quoted_table} GROUP BY 1 ORDER BY cnt DESC LIMIT 5")
+                    top_vals_str = ", ".join([f"'{r[0]}' ({r[1]} rows)" for r in top_vals_res if r[0] is not None])
                 except:
                     pass
                     
-            top_vals_res = db_manager.execute_duck_query(f"SELECT \"{col_name}\", COUNT(*) as cnt FROM {request.table_name} GROUP BY 1 ORDER BY cnt DESC LIMIT 5")
-            top_vals_str = ", ".join([f"'{r[0]}' ({r[1]} rows)" for r in top_vals_res if r[0] is not None])
-            detailed_context.append(f"- **{col_name}** ({col_type}): {unique_count} unique values{stats_str}. Top values: {top_vals_str}")
+                detailed_context.append(f"- **{col_name}** ({col_type}): {unique_count} unique values{stats_str}. Top values: {top_vals_str}")
+            except Exception as e:
+                print(f"⚠️ Column scan failed for {col_name}: {str(e)}")
+                detailed_context.append(f"- **{col_name}** ({col_type}): Scan failed")
         
         data_context_str = "\n".join(detailed_context)
         
