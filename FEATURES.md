@@ -1,79 +1,69 @@
-# 🚀 Dash AI: Feature Manifest
+# 🚀 Dash AI: Platform Feature Documentation
 
-Dash AI is a professional-grade, AI-powered analytical platform designed to transform raw data into high-impact business intelligence through natural language.
-
----
-
-## 🧠 Core AI & Analytical Features
-
-### 1. Senior Data Consultant Framework
-*   **Intent Deconstruction**: The AI acts as a Senior Data Consultant, breaking down simple prompts into sophisticated business strategies.
-*   **Strategic Planning**: Automatically selects high-impact KPIs and diverse visualizations (Line, Heatmap, Scatter, etc.) based on analytical goals.
-*   **Context-Aware Reasoning**: Every chart includes AI-generated insights explaining *why* the data matters for business decisions.
-
-### 2. Deep Statistical Data Profiling
-*   **Full-Table Deep Scan**: Unlike typical tools that sample data, Dash AI performs a 100% scan of the entire dataset.
-*   **Master Data Profile**: Calculates Ground Truth statistics (Min, Max, Avg, Unique Counts, and Top Distributions) for every column before generation.
-*   **Statistical Precision**: Ensures KPIs and charts are numerically accurate and perfectly aligned with the entire dataset.
-
-### 3. Smart SQL Engine
-*   **DuckDB Optimization**: Generates high-performance SQL tailored for the DuckDB engine.
-*   **Strict Data Realism**: AI uses the Master Data Profile to ensure filters and categories exactly match your actual data (no hallucinations).
-*   **Complex Aggregations**: Automatically handles time-series trends, categorical distributions, and complex groupings.
+Welcome to the comprehensive guide to **Dash AI**. This document outlines every core feature, its naming in the user interface, the design philosophy, and the underlying technical implementation.
 
 ---
 
-## 📊 Advanced Analytics & Visualization
+## 1. Project Portfolio
+*   **UI Name**: `Dashboards`
+*   **Design**: A sleek, grid-based layout using high-fidelity cards. Each card displays the dashboard title, description, and "Quick Action" buttons for viewing or deleting.
+*   **How it Works**: Fetches all saved dashboard projects from the backend API (`/dashboards/`). It serves as the primary navigation hub for users to manage their analytical assets.
 
-### 4. Predictive Forecasting
-*   **Linear Trend Projection**: Predict future values based on historical data.
-*   **Granular Time Slicers**: Dedicated filters for **Year, Month, and Day** to slice historical baselines before forecasting.
-*   **Interactive Management**: Standalone **Refresh** and **Reset** controls for rapid analytical iteration.
+## 2. Universal Data Connector
+*   **UI Name**: `Get Data` / `Data Sources`
+*   **Design**: A sophisticated multi-step modal with glassmorphism effects. It categorizes connectors into "Local Files" (CSV/Excel) and "Database Connections" (SQL Server, PostgreSQL, MySQL).
+*   **How it Works**: 
+    *   **Files**: Uses a drag-and-drop interface (`FileUploader`) to send files to the backend for ingestion into an in-memory DuckDB instance.
+    *   **Databases**: Connects via ODBC or native drivers to enterprise databases, allowing users to select specific tables for analysis.
 
-### 5. Dynamic Dashboard Management
-*   **Conversational Updates**: Use the AI Command Bar to modify, add, or refine charts using natural language.
-*   **Drag-and-Drop Reordering**: Fully interactive layout management using `framer-motion`.
-*   **Portfolio System**: Save and re-open projects to continue your analysis at any time.
+## 3. AI Project Generator
+*   **UI Name**: `AI Chat`
+*   **Design**: An immersive, full-screen chat interface where users interact with "Dash AI." It uses a clean message-bubble design with real-time streaming feedback.
+*   **How it Works**: Users describe what they want to see (e.g., "Show me sales trends by region"). The AI analyzes the data schema and automatically generates a complete dashboard with KPI cards and charts using LLM-powered logic.
+
+## 4. Live Analytics & Schema Explorer
+*   **UI Name**: `Analytics`
+*   **Design**: A data-dense workspace featuring active model labels, SQL preview badges, and interactive data tables.
+*   **How it Works**: Provides a direct view into the connected dataset. It displays the **Detected Schema** (column names, types, nullability) and a **Data Preview** (first 10 rows) using high-performance grid rendering.
+
+## 5. Smart ETL (Data Transformation)
+*   **UI Name**: `Transform` (within Analytics)
+*   **Design**: An AI-powered input field integrated directly above the data preview.
+*   **How it Works**: Allows users to perform complex data cleaning and transformation using natural language (e.g., "Filter for sales above 5000 and group by month"). The backend translates these requests into SQL queries executed on the fly.
+
+## 6. Interactive Dashboard Engine
+*   **UI Name**: `Dashboard View`
+*   **Design**: A dynamic, responsive layout featuring:
+    *   **KPI Cards**: Large-format numeric displays for critical metrics.
+    *   **Visual Charts**: High-quality Bar, Line, Pie, and Area charts using **Recharts**.
+    *   **AI Insights**: Contextual observations generated automatically for each chart.
+*   **How it Works**: Re-executes saved SQL queries in real-time to ensure data is always fresh. Supports drag-and-drop reordering for personalized layouts.
+
+## 7. Public Dashboard Sharing
+*   **UI Name**: `Shared Dashboard`
+*   **Design**: An ultra-clean, full-screen presentation mode. It strips away all application sidebars, headers, and interactive "clutter" to focus purely on the data.
+*   **How it Works**: Generates a unique URL with a `project_id` parameter. When accessed, the application bypasses authentication and enters a dedicated **Read-Only Mode**, protecting the dashboard from unauthorized edits while providing a professional report view.
+
+## 8. Relationship Explorer (ER Diagram)
+*   **UI Name**: `ER Diagram`
+*   **Design**: An interactive node-link diagram using **React Flow**. Tables are represented as nodes, and primary/foreign key relationships are visualized as curved connectors.
+*   **How it Works**: Scans the database metadata to automatically map out table relationships. Users can move nodes around to better understand complex enterprise data schemas.
+
+## 9. Predictive Forecasting
+*   **UI Name**: `Forecast` (within Analytics)
+*   **Design**: Features a dedicated input bar for selecting time-series columns and target metrics.
+*   **How it Works**: Uses statistical modeling to predict future data points. It visualizes the historical data alongside the predicted forecast, including confidence intervals.
+
+## 10. What-If Simulation
+*   **UI Name**: `What-If Analysis` (within Analytics)
+*   **Design**: Interactive slider controls for key metrics.
+*   **How it Works**: Allows users to simulate "What-If" scenarios (e.g., "What if revenue increases by 10%?"). It dynamically updates existing charts and KPIs to show the projected impact of changes.
+
+## 11. Theme Engine & Modern UX
+*   **UI Name**: `Sun/Moon Toggle` (Sidebar)
+*   **Design**: Support for both **Sleek Light** and **Premium Dark** modes. The design uses CSS variables to ensure a smooth, animated transition between themes.
+*   **How it Works**: Persists the user's preference in `localStorage`. Uses Tailwind-integrated custom tokens to ensure consistent aesthetics across all 30+ custom UI components.
 
 ---
 
-## 🛠️ Technical Resilience & UX
-
-### 6. Multi-Tier AI Fallback System
-*   **Provider Diversity**: Integrated support for **Google Gemini 2.0** and **Groq (Llama 3.3 70B)**.
-*   **Automatic Fallback**: Smartly switches to secondary models (Mixtral, Llama 8B) if primary models are rate-limited or exhausted.
-*   **Exponential Backoff**: Gracefully handles 429 Rate Limit errors with automatic retries.
-
-### 7. Premium UI/UX Design
-*   **Glassmorphic Interface**: A state-of-the-art visual design with smooth gradients, transparency, and modern typography.
-*   **Responsive Layouts**: Optimized for both deep desktop analysis and quick mobile reviews.
-*   **Safety-First Rendering**: Strict string-sanitization wrappers to prevent UI crashes from malformed AI responses.
-
-### 8. Data Pipeline
-*   **Multi-Format Support**: Seamlessly ingest CSV, Excel (.xlsx, .xls), and Parquet files.
-*   **Transformation Visuals**: Real-time feedback on data cleaning and ingestion status.
-*   **Local Processing**: High-speed local database execution for maximum privacy and performance.
-
----
-
-## 🗺️ Technical Implementation Map
-
-If you want to modify or study these features, here is exactly where they live in your codebase:
-
-| Feature | Code Location (File) | Function / Component |
-| :--- | :--- | :--- |
-| **Senior Data Consultant** | `backend/app/services/ai.py` | `generate_project_plan` |
-| **Full-Table Deep Scan** | `backend/app/api/v1/endpoints/project.py` | `generate_full_project` |
-| **Master Data Profile** | `backend/app/api/v1/endpoints/project.py` | Statistics loop (min/max/avg) |
-| **Smart SQL Engine** | `backend/app/services/ai.py` | `generate_sql` |
-| **Predictive Forecasting** | `backend/app/api/v1/endpoints/analytics.py` | `generate_forecast` |
-| **Time Slicers (UI)** | `frontend/src/components/ForecastView.tsx` | `Slicers Row` & `fetchYears` |
-| **AI Command Bar (Updates)** | `backend/app/api/v1/endpoints/project.py` | `update_project` |
-| **Multi-Tier AI Fallback** | `backend/app/services/ai.py` | `_call_ai` (Retry/Fallback logic) |
-| **Concurrency Control** | `backend/app/api/v1/endpoints/project.py` | `asyncio.Semaphore(2)` |
-| **Safety-First Rendering** | `frontend/src/components/DashboardView.tsx` | `typeof object ? JSON.stringify : String()` |
-| **Premium Design System** | `frontend/src/index.css` | `.glass` and CSS Variable tokens |
-| **Data Ingestion Pipeline** | `backend/app/services/database.py` | `load_file_to_duck` |
-
----
-*Created and maintained by the Dash AI Development Team.*
+*Generated by Dash AI Documentation Engine*
