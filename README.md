@@ -1,23 +1,59 @@
-# Dash AI — AI-Powered Data Analytics Platform
+# 🌌 Dash AI — AI-Powered Data Analytics Platform
 
-Dash AI is a next-generation business intelligence platform that merges the power of DuckDB and SQLModel with an advanced AI Orchestrator to transform natural language into production-grade analytics.
-
----
-
-### 📖 [Explore All Features](FEATURES.md)
+Dash AI is a next-generation business intelligence platform that merges the power of **DuckDB** and **SQLModel** with an advanced **AI Orchestrator** to transform natural language into production-grade analytics. It provides a unified workspace for data ingestion, AI-driven transformations, and immersive visualizations.
 
 ---
 
-## 🚀 Quick Start (Windows)
+## 🚀 Key Features
+
+### 1. **AI Project Generator (AI Chat)**
+*   **Conversational Analytics**: Describe what you want to see (e.g., *"Show me sales trends by region"*), and the AI will automatically build a complete dashboard.
+*   **Real-time Logic**: Uses LLMs (Groq/Gemini) to analyze schemas and generate KPI cards and charts dynamically.
+
+### 2. **Universal Data Connector**
+*   **Hybrid Ingestion**: Supports drag-and-drop for **CSV/Excel** and direct connections to **SQL Server, PostgreSQL, and MySQL**.
+*   **DuckDB Integration**: Uses an in-memory OLAP engine for lightning-fast querying on large datasets.
+
+### 3. **Smart ETL (Data Transformation)**
+*   **Natural Language ETL**: Perform complex data cleaning and filtering using plain text commands.
+*   **Live Preview**: Instantly see the results of your transformations in a high-performance data grid.
+
+### 4. **Advanced Analytics Suite**
+*   **Interactive Visuals**: Premium Bar, Line, Pie, and Area charts powered by **Apache ECharts**.
+*   **Relationship Explorer**: Interactive ER diagrams using **React Flow** to visualize database schemas.
+*   **Predictive Forecasting**: Project future trends using statistical modeling.
+*   **What-If Simulation**: Use interactive sliders to model business scenarios and see immediate impact on KPIs.
+
+### 5. **Sharing & Presentation**
+*   **Public Dashboards**: Generate unique, read-only URLs for professional presentation.
+*   **Theme Engine**: Sleek Light and Premium Dark modes with smooth transitions.
+
+---
+
+## 🛠️ Technology Stack
+
+### **Frontend**
+- **Core**: React 19, TypeScript, Vite 8.
+- **Styling**: Tailwind CSS v4 (Glassmorphism & modern UI tokens).
+- **Visuals**: Apache ECharts, Recharts, Framer Motion (animations), React Flow.
+- **State**: TanStack Query (React Query).
+
+### **Backend**
+- **Framework**: FastAPI (Asynchronous Python).
+- **ORM**: SQLModel (Pydantic + SQLAlchemy).
+- **Engine**: DuckDB (Analytical/OLAP).
+- **AI**: Groq (Llama 3), Google Gemini 1.5.
+- **Data**: Pandas, OpenPyXL.
+
+---
+
+## ⚙️ Quick Start (Windows)
 
 The easiest way to get started is to use the automated startup script:
 
 1.  Open the project folder.
 2.  Double-click **`run.bat`**.
-3.  The script will automatically:
-    *   Create a Python virtual environment.
-    *   Install all Backend & Frontend dependencies.
-    *   Launch both servers in separate windows.
+3.  The script will automatically set up the virtual environment, install dependencies, and launch both servers.
 4.  Open your browser to: **`http://localhost:5173`**
 
 ---
@@ -26,40 +62,30 @@ The easiest way to get started is to use the automated startup script:
 
 ### 1. Prerequisites
 *   **Python 3.10+**
-*   **Node.js 18+** (with npm)
-*   **API Keys**: Groq and Google Gemini keys.
+*   **Node.js 18+**
+*   **API Keys**: Groq and Google Gemini.
 
 ### 2. Backend Setup
-Navigate to the `backend` directory:
 ```bash
 cd backend
-# Create virtual environment
 python -m venv venv
-# Activate it
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-# Install dependencies
+source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
-# Run server
 uvicorn app.main:app --reload
 ```
-*API will be available at `http://localhost:8000`*
 
 ### 3. Frontend Setup
-Navigate to the `frontend` directory:
 ```bash
 cd frontend
-# Install dependencies
 npm install
-# Run development server
 npm run dev
 ```
-*UI will be available at `http://localhost:5173`*
 
 ---
 
-## ⚙️ Configuration (`.env`)
+## 🔑 Configuration (`.env`)
 
-Ensure you have a `.env` file in the `backend/` directory with the following content:
+Ensure you have a `.env` file in the `backend/` directory:
 
 ```env
 GROQ_API_KEY="your_groq_key"
@@ -71,17 +97,11 @@ PROJECT_NAME="Dash AI"
 
 ---
 
-## 🌟 Features to Explore
+## 🏗️ Architecture Design
 
-1.  **Smart Ingestion**: Drag and drop a CSV/Excel in the Dashboard tab.
-2.  **AI ETL**: Describe data changes in plain text (e.g., *"Filter for values > 100"*).
-3.  **Prompt Mode**: In the **AI Chat** tab, type *"Build a sales dashboard"* to generate a full project.
-4.  **Portfolio**: Save your AI projects and view them in the **Dashboards** tab.
-5.  **Analytics**: Use the **Forecasting** and **What-If** sliders to predict future business impact.
+1.  **Analytical Layer**: DuckDB handles the heavy lifting for data processing, providing sub-second query response times.
+2.  **Intelligence Layer**: AI models (Groq/Gemini) act as the bridge between user intent and SQL execution.
+3.  **Persistence Layer**: SQLModel with PostgreSQL manages metadata, projects, and user configurations.
 
 ---
-
-## 🏗️ Technology Stack
-*   **Frontend**: React, TypeScript, Tailwind CSS v4, Apache ECharts.
-*   **Backend**: FastAPI, SQLModel (PostgreSQL), DuckDB (OLAP Engine).
-*   **AI**: Groq (Llama 3), Google Gemini 1.5.
+*Built with ❤️ by the Dash AI Team*
